@@ -1,0 +1,767 @@
+# Research Log – Implementation of Universal Statistical Laws Governing Culinary Design on CocktailDB
+
+**Research Area:** Computational Gastronomy, Statistical Analysis and Culinary Scaling Laws  
+**Reference Paper:** *Universal Statistical Laws Governing Culinary Design* – Bagler et al. (2026)  
+**Dataset:** CocktailDB  
+**Report:** CocktailDB_EDA_Research_Report-1.pdf  
+**Research Supervisor:** Dr. Ganesh Bagler  
+**Researcher:** Satyam Singh
+
+---
+
+## 1. Research Background and Objective
+
+Following our detailed study of the paper *Universal Statistical Laws Governing Culinary Design*, we moved from understanding its theoretical framework to implementing its analytical methodology on the CocktailDB dataset.
+
+In the previous research stage, we had studied the mathematical foundations of Zipf's law, Heaps' law, the Menzerath–Altmann law, nutrient distributions and the generative mechanisms proposed in the paper.
+
+The next objective was to investigate whether these statistical regularities could also be observed in cocktail recipes.
+
+The original paper investigated a large corpus of traditional recipes across multiple cuisines. CocktailDB, in contrast, represents a narrower domain consisting primarily of short drink recipes, with repeated base spirits, juices, liqueurs, sweeteners, bitters and garnishes.
+
+We therefore treated the paper as a methodological reference rather than attempting to reproduce its numerical results.
+
+The main objectives were:
+
+1. Understand the structure and quality of CocktailDB.
+2. Map the variables used in the reference paper to the available CocktailDB columns.
+3. Develop an appropriate ingredient extraction and normalization pipeline.
+4. Implement Zipf's law on ingredient frequencies.
+5. Implement Heaps' law using incremental vocabulary growth.
+6. Investigate the Menzerath–Altmann relationship using ingredient information content.
+7. Examine whether nutrient distributions exhibit log-normal characteristics.
+8. Explore ingredient co-occurrence and multivariate relationships.
+9. Identify which analyses from the original paper could not be reproduced because of missing data.
+10. Present the implementation, results and limitations to the professor.
+
+The implementation was designed to allow CocktailDB to exhibit similar, different or statistically weak patterns without forcing it to match the reference paper.
+
+---
+
+## 2. Dataset Inspection and Initial Audit
+
+The dataset contained 16,895 rows and nine columns:
+
+- Name
+- Name.1
+- Category
+- Ingredients
+- Nutrients
+- Ratings
+- Votes
+- Prep_Time
+- Cuisine
+
+The initial audit revealed several data-quality issues.
+
+### 2.1 Duplicate and Redundant Fields
+
+The Name and Name.1 columns were identical, with zero mismatches. Therefore, Name.1 was excluded from the analytical models.
+
+We also identified:
+
+- 17 additional exact duplicate rows.
+- 23 additional Name + Ingredients duplicate records, including the exact duplicates.
+- 1,144 recipe names appearing more than once.
+- 1,131 names associated with different ingredient lists, which were retained as legitimate recipe variants.
+
+The frequency corpus therefore contained 16,872 recipes.
+
+We deliberately retained different ingredient formulations under the same recipe name because treating every repeated name as a duplicate would remove potentially meaningful recipe variations.
+
+### 2.2 Missing-Value Analysis
+
+We performed a column-wise missingness audit.
+
+| Column | Missing values |
+|---|---:|
+| Cuisine | 97.7% |
+| Nutrients | 66.3% |
+| Category | 59.0% |
+| Prep_Time | 58.6% |
+| Ratings | 52.5% |
+| Votes | 52.6% |
+| Ingredients | 0% |
+
+This immediately established that the dataset could not support every analysis from the reference paper.
+
+Cuisine was particularly problematic. Only 393 recipes had non-missing cuisine information, and the labels also mixed drink types and geographical identities.
+
+Consequently, cuisine-stratified statistical laws were not considered reliable.
+
+### 2.3 Rating and Vote Cleaning
+
+Votes were stored as text, sometimes containing comma separators.
+
+We removed commas and converted the values into numeric form.
+
+We also found 116 records where Rating = 0 and Votes = 0 simultaneously.
+
+These records were treated as unrated rather than genuine zero-star ratings.
+
+The original columns were preserved, while separate analysed fields were created.
+
+No ratings, votes or textual fields were imputed.
+
+### 2.4 Preparation-Time Parsing
+
+Preparation times contained different formats, including:
+
+- Seconds.
+- Minutes.
+- Hours.
+- Days.
+- Numeric ranges.
+- Repeated phrases.
+- Unitless numbers.
+
+We implemented a parsing procedure to convert preparation times into minutes.
+
+The conversion rules were:
+
+- Seconds divided by 60.
+- Hours multiplied by 60.
+- Days multiplied by 1,440.
+- Numeric ranges represented using their average.
+- Whole repeated phrases removed.
+- Unitless numbers interpreted as minutes.
+
+All preparation strings were successfully parsed, but unusual values were retained and flagged rather than automatically deleted.
+
+The maximum recorded preparation time was 20,170 minutes, illustrating the importance of investigating extreme observations.
+
+---
+
+## 3. Ingredient Extraction and Normalization
+
+Ingredient extraction was one of the most important parts of the implementation because the statistical laws depend directly on ingredient identity and frequency.
+
+The original dataset contained pipe-delimited ingredient strings, with quantities and measurement descriptions embedded in the text.
+
+We split these strings into individual ingredient records and developed four normalization levels.
+
+### 3.1 Surface Normalization
+
+This involved lowercase conversion and whitespace normalization.
+
+It retained most of the original ingredient descriptions.
+
+### 3.2 Standard Normalization
+
+This was the primary normalization used for the main statistical analyses.
+
+It involved:
+
+- Lowercase conversion.
+- Whitespace normalization.
+- Removal of leading and trailing quantities.
+- Removal of measurement units.
+- Mapping Cointreau to orange liqueur.
+- Mapping Kahlua to coffee liqueur.
+
+We deliberately did not collapse lime, lime juice and fresh lime juice into one entity.
+
+### 3.3 Moderate Normalization
+
+This additionally removed garnish and preparation descriptors.
+
+### 3.4 Core Normalization
+
+This was used for sensitivity analysis and included additional simplifications, such as merging ice variants and removing the descriptor fresh.
+
+The four levels helped us understand how much ingredient identity decisions could influence the statistical results.
+
+Under standard normalization, the corpus contained:
+
+- 14,466 unique ingredients.
+- 79,411 total ingredient mentions.
+- 31,180 unique surface strings.
+- 12,480 unique core-normalized strings.
+
+Ingredient frequency was calculated as the number of distinct recipes containing an ingredient, without double-counting repeated mentions within the same recipe.
+
+---
+
+## 4. Libraries and Technical Environment
+
+The implementation used CPython 3.13 and a scientific Python workflow.
+
+The following libraries and tools were documented in the report.
+
+| Library / Tool | Purpose |
+|---|---|
+| Pandas | Data loading, cleaning, grouping, missingness analysis, frequency calculations and CSV handling |
+| NumPy | Numerical operations, arrays, transformations and sampling |
+| Matplotlib | Histograms, ECDFs, log-log plots, scatter plots, heatmaps, network visualizations and PCA figures |
+| SciPy | Spearman and Pearson correlations, skewness, linear regression, nonlinear curve fitting, Kolmogorov–Smirnov tests and distribution fitting |
+| powerlaw (Alstott) | Clauset-style discrete power-law fitting and likelihood-ratio comparisons |
+| Scikit-learn | StandardScaler and PCA on complete-case nutrient data |
+| NetworkX | Ingredient co-occurrence network construction and graph layouts |
+| statsmodels | Available statistical modelling environment; the core association calculations used SciPy |
+| ReportLab | Generation of the final paginated research PDF |
+| Pillow | Measuring figure aspect ratios and preventing distortion during PDF embedding |
+| re | Regular-expression-based parsing of quantities, votes, preparation times and nutrient strings |
+| unicodedata | Text normalization and Unicode handling |
+
+Jupyter/Python-based analysis was organised into numbered scripts.
+
+The pipeline included:
+
+1. `01_data_audit.py`
+2. `02_cleaning.py`
+3. `03_basic_eda.py`
+4. `04_ingredient_analysis.py`
+5. `05_zipf.py`
+6. `06_heaps.py`
+7. `07_menzerath.py`
+8. `08_nutrition.py`
+9. `09_cooccurrence.py`
+10. `10_multivariate.py`
+11. `11_generate_report.py`
+12. `12_extended_additions.py`
+
+The complete workflow was designed to run through:
+
+`python scripts/run_all.py`
+
+Raw data was preserved, while the scripts generated cleaned data, long-format ingredient records, nutrient tables, figures, CSV summaries and JSON numerical outputs.
+
+---
+
+## 5. Exploratory Data Analysis
+
+Before implementing the statistical laws, we examined the general structure of the cocktail corpus.
+
+### 5.1 Recipe Size Distribution
+
+We calculated the number of unique ingredients in each recipe.
+
+The results were:
+
+- Mean: 4.67 ingredients.
+- Median: 4 ingredients.
+- Standard deviation: 1.80.
+- Interquartile range: 3.
+- Minimum: 1.
+- Maximum: 22.
+
+We generated:
+
+- Recipe-size histogram.
+- Violin and box plots.
+- Empirical cumulative distribution function.
+
+The analysis showed that cocktail recipes were considerably shorter than the traditional food recipes studied in the reference paper.
+
+This was important because recipe size is directly used in the Menzerath–Altmann analysis.
+
+### 5.2 Category Distribution
+
+Category information was available for 6,925 recipes, representing approximately 41% of the frequency corpus.
+
+There were 429 distinct category labels.
+
+We examined the top 20 categories and their distribution.
+
+The labels were heterogeneous, mixing:
+
+- Drink styles.
+- Spirit families.
+- Flavour families.
+- Glassware-related descriptions.
+
+Therefore, category analysis was restricted to records with available labels and was not treated as a globally representative classification.
+
+### 5.3 Ingredient Popularity
+
+The most frequently occurring normalized ingredient was vodka, appearing in 2,191 recipes.
+
+A particularly important finding was that 10,626 ingredients occurred in only one recipe.
+
+This represented 73.5% of the ingredient vocabulary.
+
+The distribution demonstrated a small core of frequently reused ingredients and a long tail of rare ingredients.
+
+### 5.4 Ratings and Votes
+
+Among analysed ratings:
+
+- Mean rating: 4.317.
+- Median rating: 4.450.
+- Standard deviation: 0.442.
+- Number of analysed ratings: 7,890.
+
+Votes were heavily right-skewed:
+
+- Mean votes: 38.4.
+- Median votes: 30.
+- Maximum votes: 4,348.
+- Skewness: 25.10.
+
+We examined the relationship between rating and log-transformed votes.
+
+The Spearman correlation was approximately -0.058.
+
+This was statistically detectable but extremely weak in magnitude.
+
+We also implemented a Bayesian-style vote-adjusted rating estimator:
+
+Adjusted rating = (V × R + m × C) / (V + m)
+
+Here, V represents votes, R represents the observed rating, C is the global mean rating and m is the smoothing parameter, set to 10.
+
+The purpose was to prevent recipes with very few votes and unusually high ratings from automatically dominating the ranking.
+
+### 5.5 Preparation-Time Analysis
+
+The parsed preparation-time data had:
+
+- Mean: 7.95 minutes.
+- Median: 3 minutes.
+- 95th percentile: 10 minutes.
+- Maximum: 20,170 minutes.
+
+We generated preparation-time histograms, log-scale plots and scatter plots against ingredient count and votes.
+
+Spearman associations were:
+
+- Preparation time versus ingredient count: ρ = 0.352.
+- Preparation time versus votes: ρ = -0.290.
+
+These were treated as observational associations rather than causal relationships.
+
+### 5.6 Nutritional EDA
+
+We parsed two different nutrient-string formats:
+
+1. Compact format, such as `184 Calories|3g Fat|8g Carbs`.
+2. Colon-based format, such as `Calories: 239 kcal|Carbohydrates: 14 g`.
+
+Carbs and Carbohydrates were mapped to the same variable after checking their units.
+
+We preserved different units where appropriate, including kcal, grams, milligrams and IU.
+
+We did not assume serving-size standardization because it was not documented in the source data.
+
+---
+
+## 6. Implementation of the Statistical Laws
+
+### 6.1 Zipf's Law
+
+The first major implementation investigated the rank-frequency distribution of ingredients.
+
+We calculated the number of distinct recipes containing each normalized ingredient.
+
+Ingredients were sorted in descending order of frequency and assigned ranks.
+
+The model was:
+
+f(r) ∝ r^(-α)
+
+We generated a log-log rank-frequency plot.
+
+The primary descriptive fit used ranks 5–500.
+
+Results:
+
+- Zipf exponent α ≈ 0.998.
+- R² ≈ 0.991.
+- Number of fitted rank points: 496.
+
+The unrestricted full-range fit gave an exponent of approximately 0.878 and R² of 0.884.
+
+This showed that the curve was not a perfect straight line over the entire range.
+
+We additionally used the `powerlaw` library to perform Clauset-style discrete power-law fitting on the frequency vector.
+
+This produced:
+
+- Frequency-distribution exponent: approximately 1.848.
+- Minimum frequency: 2.
+- KS distance: 0.356.
+- Tail observations: 3,840.
+
+We compared the power-law model against log-normal and exponential alternatives.
+
+An important methodological distinction was that the rank-frequency exponent and the frequency-distribution MLE exponent are different quantities.
+
+We therefore reported them separately.
+
+**Conclusion:** CocktailDB exhibited a heavy-tailed, Zipf-like ingredient usage pattern, but a perfect power law was not established.
+
+### 6.2 Heaps' Law
+
+Heaps' law investigates the growth of unique vocabulary as additional recipes are included.
+
+The model was:
+
+V(R) = K × R^β
+
+Where V(R) is the cumulative number of unique ingredients and R is the number of recipes.
+
+We randomly shuffled the recipe corpus 100 times.
+
+For each ordering:
+
+1. Recipes were incrementally added.
+2. A cumulative set of unique ingredients was maintained.
+3. The number of unique ingredients was recorded.
+4. Vocabulary growth was fitted in logarithmic space.
+
+The estimated mean exponent was:
+
+β = 0.738
+
+The 95% permutation interval was:
+
+[0.725, 0.751]
+
+The curve showed sublinear vocabulary growth.
+
+This indicated that new cocktail recipes increasingly reused ingredients already present in the corpus, although new ingredients continued to appear.
+
+We compared the result with the reference paper's global exponent of approximately 0.56.
+
+We did not treat the numerical difference as a failure. The two corpora differ in size, domain and ingredient vocabulary.
+
+### 6.3 Menzerath–Altmann Law
+
+We next investigated the relationship between recipe size and average ingredient information content.
+
+Ingredient information was calculated as:
+
+s(i) = -log p(i)
+
+The average information content for a recipe of size L was calculated using the information content of its ingredients.
+
+We fitted the model:
+
+y(L) = a × L^b × exp(cL)
+
+The analysis included:
+
+- Recipe-size calculation.
+- Ingredient probability estimation.
+- Information-content calculation.
+- Scatter plots.
+- Binned average curves.
+- Nonlinear least-squares fitting.
+- Residual and sensitivity checks.
+
+The Spearman correlation between recipe size and average ingredient information was approximately 0.101.
+
+The analysis did not assume that the cocktail dataset would reproduce the reference paper's decreasing-then-increasing pattern.
+
+A major issue was that cocktail recipes were much shorter, with a median ingredient count of four.
+
+This meant that the available recipe-size range was substantially different from the global food corpus, making direct comparison of the curve's minimum difficult.
+
+### 6.4 Nutrient Distribution Analysis
+
+We investigated whether the nutrient quantities followed log-normal distributions.
+
+Only positive nutrient values were used for logarithmic transformations and KS distribution fitting.
+
+Zero values were counted separately.
+
+We examined:
+
+- Original-scale nutrient distributions.
+- Log-transformed nutrient distributions.
+- Log-space skewness.
+- Candidate distribution fits.
+- Kolmogorov–Smirnov distances.
+- Nutrient correlations.
+
+Candidate distributions included:
+
+- Log-normal.
+- Gamma.
+- Weibull.
+- Gaussian.
+- Exponential.
+
+The best KS candidates varied by nutrient:
+
+| Nutrient | Best candidate |
+|---|---|
+| Calories | Log-normal |
+| Carbohydrates | Gamma |
+| Protein | Weibull |
+| Fat | Log-normal |
+| Sugar | Gamma |
+| Sodium | Log-normal |
+
+We did not claim that all cocktail nutrients followed a log-normal distribution.
+
+The incomplete coverage and unknown serving-size standardization restricted the conclusions.
+
+---
+
+## 7. Ingredient Co-occurrence Analysis
+
+In addition to reproducing the main statistical framework, we explored ingredient combinations.
+
+We constructed a co-occurrence matrix using the top 40 ingredients.
+
+The number of recipes containing each pair was counted.
+
+We also calculated Pointwise Mutual Information:
+
+PMI(i,j) = ln[p(i,j) / (p(i)p(j))]
+
+A minimum joint occurrence threshold of 25 recipes was used to reduce rare-event inflation.
+
+A network was generated using positive-PMI edges, with the displayed network using PMI greater than 0.4.
+
+The initial network contained 166 edges.
+
+Some prominent associations included:
+
+- Irish cream – whipped cream.
+- Coffee liqueur – Irish cream.
+- Lemon – blue curaçao.
+- Irish cream – milk.
+- Triple sec – tequila.
+
+We interpreted these as recipe co-occurrence patterns, not proof of flavour compatibility.
+
+The analysis was useful for identifying recurring ingredient combinations and possible future research directions.
+
+---
+
+## 8. Multivariate Analysis
+
+We also investigated selected relationships between:
+
+- Ingredient count.
+- Preparation time.
+- Ratings.
+- Votes.
+- Calories.
+- Sugar.
+- Protein.
+
+Spearman correlation was used as the primary association measure because many variables were skewed and contained outliers.
+
+Bootstrap confidence intervals were generated using 400 resamples for key relationships.
+
+Some of the strongest observed associations were:
+
+| Variable pair | Spearman correlation |
+|---|---:|
+| Ingredient count vs calories | 0.25 |
+| Ingredient count vs votes | -0.19 |
+| Ingredient count vs protein | 0.14 |
+
+We also performed PCA on eight standardized nutrient variables using 2,319 complete-case recipes.
+
+The first principal component explained 61.5% of the variance, while the second explained 16.8%.
+
+Together, the first two components explained 78.3%.
+
+The PCA was treated as descriptive dimensionality reduction rather than a health score or clustering model.
+
+---
+
+## 9. Limitations and Problems Encountered
+
+The first implementation revealed several important limitations.
+
+### 9.1 Missing and Incomplete Metadata
+
+Cuisine was 97.7% missing, preventing reliable cuisine-level analysis.
+
+Category was approximately 59% missing, restricting category comparisons to the observed subset.
+
+Nutrients were approximately 66.3% missing, making nutritional conclusions dependent on a much smaller subset.
+
+### 9.2 Ingredient Normalization
+
+The ingredient field contained quantities, units, preparation descriptions and alternative names.
+
+Normalization was partly subjective.
+
+Different normalization choices changed the size of the ingredient vocabulary and could influence Zipf, Heaps and Menzerath–Altmann estimates.
+
+### 9.3 Smaller Corpus and Different Domain
+
+CocktailDB contained 16,872 recipes in the frequency corpus, considerably fewer than the 118,083 recipes in the reference paper.
+
+Cocktails also tend to contain fewer ingredients than traditional cooked dishes.
+
+Therefore, the exponents and curve shapes were not expected to match exactly.
+
+### 9.4 Zipf Fitting
+
+The log-log curve was curved rather than perfectly linear.
+
+The fitted exponent changed when the rank interval changed.
+
+A high R² alone was not sufficient to establish a genuine power law.
+
+### 9.5 Heaps Sampling
+
+The vocabulary-growth curve depended on the order in which recipes were introduced.
+
+Repeated random shuffling helped quantify this ordering variability, but it did not remove the limitations of the underlying dataset.
+
+### 9.6 Menzerath–Altmann Recipe-Size Range
+
+Cocktail recipes were short, with a median of four ingredients.
+
+There were relatively few large recipes, limiting the ability to investigate whether the same non-monotonic relationship observed in the global food corpus existed in CocktailDB.
+
+### 9.7 Nutrient Inconsistency
+
+Nutrient strings appeared in multiple formats.
+
+The source did not reliably specify serving sizes.
+
+Extremely large nutrient values could represent batch quantities, source inconsistencies or other issues, but the CSV did not allow us to establish which explanation was correct.
+
+### 9.8 Co-occurrence Is Not Flavour Chemistry
+
+PMI and ingredient co-occurrence reveal whether ingredients are used together more frequently than expected from their individual prevalence.
+
+They do not establish sensory compatibility or shared flavour compounds.
+
+This would require external flavour-compound information.
+
+### 9.9 Observational Bias
+
+The dataset likely combines heterogeneous sources, including recipe blogs, rating websites and nutrition-labelled pages.
+
+Ratings and votes measure user attention and reported opinions, not objective culinary quality.
+
+### 9.10 Missing Variables from the Reference Paper
+
+The dataset did not provide:
+
+- Structured cooking techniques.
+- Utensils.
+- Instruction-step complexity.
+- Reliable cuisine labels.
+- Full NER-extracted ingredient attributes.
+- Standardized per-serving nutrient values.
+
+Therefore, these analyses could not be directly reproduced.
+
+---
+
+## 10. Presentation and Research Discussion
+
+After implementing the paper's methodology, we prepared a detailed 39-page research report documenting the complete analytical workflow, results, graphs, statistical estimates and limitations.
+
+The report was presented to Professor Ganesh Bagler.
+
+The presentation covered:
+
+1. How the original paper's statistical questions were mapped onto CocktailDB.
+2. The dataset audit and preprocessing decisions.
+3. Ingredient extraction and normalization.
+4. Recipe-size and ingredient-frequency distributions.
+5. Zipf fitting and the interpretation of the exponent.
+6. Heaps vocabulary-growth analysis.
+7. Menzerath–Altmann information-content analysis.
+8. Nutrient distribution fitting.
+9. Co-occurrence networks and PMI.
+10. Multivariate correlations and PCA.
+11. The differences between the cocktail dataset and the global recipe corpus.
+12. Limitations and analyses that could not be reproduced.
+
+The discussion was important because it allowed us to evaluate whether the graphs communicated the statistical findings correctly and whether our interpretations were supported by the actual data.
+
+We identified several areas requiring further scrutiny:
+
+- Whether the Zipf exponent was stable across different rank intervals.
+- Whether a high log-log R² concealed curvature.
+- Whether the Heaps analysis could better communicate variability across random permutations.
+- How to interpret the colours in correlation heatmaps and distinguish correlation matrices from count matrices.
+- How to make highly skewed distributions and extreme values easier to interpret.
+- Whether the ingredient network should be examined hierarchically.
+- Whether network edge widths and node colours had precise statistical meanings.
+- Whether a full network backbone could provide more information than the selected top-40 PMI network.
+
+These observations became the basis for the subsequent refinement stage.
+
+---
+
+## 11. Planned Improvements for the Next Meeting
+
+We planned to revisit the original report rather than immediately expand into unrelated analyses.
+
+The next phase would focus on improving the statistical evidence, visualization and interpretation.
+
+### 11.1 Zipf Robustness
+
+- Fit the rank-frequency relationship over ranks 5–500, 5–1000 and 5–2000.
+- Examine whether the estimated exponent changes with the fitting interval.
+- Investigate residual curvature.
+- Compare normalized ingredients against literal quantity-bearing strings.
+- Improve the explanation of the difference between rank-frequency OLS and frequency-distribution MLE.
+
+### 11.2 Heaps Visualization
+
+- Generate boxplots of vocabulary size at fixed recipe counts.
+- Show the distribution of vocabulary growth across random orderings.
+- Display the fitted beta values across permutations.
+- Explain why the final vocabulary count must be identical at the full corpus size.
+
+### 11.3 Correlation and Heatmap Interpretation
+
+- Add numerical values to correlation heatmaps.
+- Use a diverging colour scale centred at zero.
+- Display the number of observations for each pair.
+- Investigate why certain nutrient correlations are strong while popularity-related correlations remain weak.
+- Avoid interpreting a small p-value as a large effect.
+
+### 11.4 Distribution Visualization
+
+- Generate paired raw and log-transformed plots.
+- Investigate unusually large nutrient and preparation-time values.
+- Retain valid zero values using log1p where appropriate.
+- Use density-oriented scatter visualizations for heavily overlapping observations.
+
+### 11.5 Hierarchical Co-occurrence
+
+- Apply hierarchical clustering to ingredient recipe-membership vectors.
+- Investigate Jaccard similarity and distance.
+- Generate a heatmap with dendrograms.
+- Evaluate whether the clusters correspond to meaningful ingredient co-use groups.
+
+### 11.6 Improved Network Representation
+
+- Give edge widths a mathematically defined mapping.
+- Separate ingredient frequency from association strength.
+- Use consistent node colours.
+- Investigate the complete co-occurrence network rather than only the top 40 ingredients.
+
+### 11.7 Network Backbone and Statistical Robustness
+
+- Construct the full ingredient network before applying selection thresholds.
+- Investigate the disparity filter.
+- Examine multiple alpha thresholds.
+- Compare retained and non-retained edges.
+- Test alternative significance rules.
+- Investigate multiple-testing correction.
+- Compare the disparity-filter result against an ingredient-occurrence independence null.
+
+The goal was to understand whether the apparent network structure was robust or was largely a consequence of arbitrary visualization and filtering choices.
+
+---
+
+## 12. Overall Outcome
+
+This first implementation successfully translated the major statistical questions from *Universal Statistical Laws Governing Culinary Design* into a cocktail-specific analytical workflow.
+
+We established that CocktailDB exhibits a concentrated ingredient-frequency distribution and sublinear vocabulary growth.
+
+However, the Menzerath–Altmann relationship and nutrient distributions did not reproduce every pattern observed in the original food corpus.
+
+The implementation also exposed limitations in ingredient normalization, missing metadata, source heterogeneity, extreme values and the interpretation of ingredient co-occurrence networks.
+
+Most importantly, the first report provided a reproducible baseline against which subsequent modifications could be evaluated.
+
+The next stage was therefore planned as a systematic robustness and interpretation exercise: testing the stability of the original results, improving visualizations, introducing hierarchical co-occurrence analysis and examining the full ingredient network.

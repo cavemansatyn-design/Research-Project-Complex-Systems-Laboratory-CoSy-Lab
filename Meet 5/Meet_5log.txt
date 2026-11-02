@@ -1,0 +1,255 @@
+RESEARCH LOG – DETAILED STUDY OF HIERARCHICAL CLUSTERING OF WORLD CUISINES
+
+Research Paper: Hierarchical Clustering of World Cuisines
+Authors: Tript Sharma, Utkarsh Upadhyay, Jushaan Kalra, Sakshi Arora, Saad Ahmad, Bhavay Aggarwal and Ganesh Bagler
+Research Group: Complex Systems Laboratory, IIIT-Delhi
+
+1. OBJECTIVE AND OVERVIEW
+
+Following our exploratory data analysis of CulinaryDB, we studied the research paper "Hierarchical Clustering of World Cuisines" in detail.
+
+The objective was to understand how computational techniques can identify similarities and relationships between cuisines based on their ingredients, cooking processes and utensils.
+
+We studied the complete methodology, including frequent pattern mining, ingredient authenticity, hierarchical clustering and the comparison of different distance metrics.
+
+During the discussion, we clarified conceptual doubts, examined the limitations of the proposed methodology and discussed possible approaches for implementing and improving upon the existing techniques.
+
+2. UNDERSTANDING THE RESEARCH METHODOLOGY
+
+The paper analyses 118,071 recipes across 26 world cuisines using RecipeDB as its primary source.
+
+It considers four types of recipe-related information:
+- Ingredients
+- Cooking processes
+- Utensils
+- Recipe details
+
+The authors propose two major approaches for identifying relationships between cuisines:
+
+1. Frequent Itemset-based Hierarchical Clustering (FIHC).
+2. Authenticity-based Clustering.
+
+We studied both approaches and their role in constructing hierarchical representations of world cuisines.
+
+2.1 FREQUENT PATTERN MINING AND FP-GROWTH
+
+We first studied frequent itemset mining and how it can be applied to recipe data.
+
+A recipe is represented as an unordered collection of ingredients, processes and utensils. Frequent itemset mining identifies combinations of these elements that repeatedly occur across recipes.
+
+The paper uses the FP-Growth algorithm to extract frequent patterns separately for each cuisine.
+
+We studied the concept of support, which measures how frequently a particular itemset occurs across transactions.
+
+Support(X) = Number of recipes containing X / Total number of recipes
+
+The authors selected a minimum support threshold of 0.20 (20%) to identify significant patterns while reducing noise.
+
+We also examined how combinations of ingredients and cooking actions can act as characteristic features of a cuisine.
+
+Example: The combination of soy sauce and sesame oil occurs in 34% of Korean recipes, giving it a support of 0.34.
+
+2.2 FREQUENT ITEMSETS AND ASSOCIATION PATTERNS
+
+We discussed how frequent itemsets help identify recurring combinations of ingredients and cooking actions.
+
+We also explored the distinction between an individual item's frequency and the frequency of a combination of items.
+
+For example, finding that onion is common in a cuisine is different from finding that onion, salt and a particular cooking process frequently occur together.
+
+This helped us understand why mining combinations can reveal more meaningful culinary patterns than analysing individual ingredient frequencies alone.
+
+2.3 AUTHENTICITY-BASED CLUSTERING
+
+The second major approach in the paper was authenticity-based clustering.
+
+We studied how the authors identify ingredients that are particularly characteristic of a cuisine.
+
+The method calculates the prevalence of an item in a cuisine relative to the complete dataset and compares it with the corresponding prevalence across other cuisines.
+
+The idea is to identify:
+- Items that are unusually prevalent in a particular cuisine.
+- Items that are unusually less prevalent in that cuisine compared with others.
+
+We discussed how a cuisine's identity may be defined not only by the ingredients it frequently uses, but also by ingredients it uses relatively less than other cuisines.
+
+This approach provides a different perspective from frequent pattern mining, which primarily captures recurring positive patterns.
+
+2.4 HIERARCHICAL AGGLOMERATIVE CLUSTERING
+
+We studied how the patterns extracted from different cuisines are converted into representations suitable for clustering.
+
+The paper combines patterns obtained across cuisines, removes redundant patterns and converts the resulting pattern representations into numerical feature vectors using label encoding and vectorisation.
+
+These representations are used to calculate pairwise distances between cuisines.
+
+The authors apply Hierarchical Agglomerative Clustering (HAC) to construct dendrograms representing relationships between cuisines.
+
+We studied how HAC initially treats every cuisine as an individual cluster and progressively merges clusters according to their distances.
+
+We also examined how to interpret dendrograms and how merging distances indicate the relative dissimilarity between cuisines.
+
+2.5 UNDERSTANDING DIFFERENT DISTANCE METRICS
+
+The paper evaluates three distance metrics:
+
+Jaccard Distance:
+
+D_J(A,B) = 1 - |A intersection B| / |A union B|
+
+It measures dissimilarity based on the overlap between two sets.
+
+Cosine Distance:
+
+D_C(A,B) = 1 - (A dot B) / (||A|| ||B||)
+
+It measures dissimilarity based on the angle between two feature vectors.
+
+Euclidean Distance:
+
+D_E(A,B) = sqrt(sum((A_i - B_i)^2))
+
+It measures the straight-line distance between two numerical feature vectors.
+
+We discussed how these metrics capture different notions of similarity and why the choice of distance metric can significantly influence the resulting clusters.
+
+2.6 K-MEANS CLUSTERING AND THE ELBOW METHOD
+
+The paper also investigates K-Means clustering as an alternative approach.
+
+We studied the Elbow Method, which uses Within-Cluster Sum of Squares (WCSS) to help determine an appropriate number of clusters.
+
+The paper reports that the elbow curve did not show a clear turning point, making it difficult to identify the optimal number of clusters.
+
+Consequently, the authors relied predominantly on hierarchical agglomerative clustering.
+
+3. QUESTIONS AND CONCEPTS DISCUSSED
+
+During our detailed reading, we identified several conceptual doubts and discussed how the different components of the methodology work together.
+
+The major discussion points included:
+
+1. Frequent Itemsets vs. Association Rules:
+What is the difference between finding frequent combinations of ingredients and generating association rules? What additional information does an association rule provide?
+
+2. Choice of FP-Growth:
+Why did the authors choose FP-Growth instead of Apriori? How does the FP-tree structure reduce the need to generate and repeatedly scan candidate itemsets?
+
+3. Understanding Support Thresholds:
+Why was a support threshold of 20% selected? How would increasing or decreasing this threshold affect the number and quality of patterns discovered?
+
+4. Meaning of Ingredient Authenticity:
+How does authenticity differ from simple ingredient frequency? Why can an ingredient that is relatively uncommon in a cuisine still contribute to its culinary identity?
+
+5. Positive and Negative Relationships:
+Why does authenticity-based clustering account for both positively and negatively prevalent ingredients, while frequent pattern-based clustering primarily captures recurring patterns?
+
+6. Feature Representation:
+How are the mined patterns converted into numerical feature vectors? What information might be lost when categorical patterns are label-encoded?
+
+7. Choice of Distance Metrics:
+How do Jaccard, Cosine and Euclidean distances behave differently when comparing sparse and high-dimensional cuisine representations? Which metric is more appropriate for categorical or binary data?
+
+8. Interpreting Dendrograms:
+How should the distance at which two cuisines merge be interpreted? How does changing the distance metric affect the resulting hierarchical structure?
+
+9. K-Means vs. Hierarchical Clustering:
+Why might hierarchical clustering be more suitable for this problem? What does the absence of a clear elbow indicate about the structure of the dataset?
+
+10. Validating Cuisine Relationships:
+How can we determine whether two cuisines are genuinely similar? Is geographical proximity sufficient to validate computationally generated cuisine clusters?
+
+These discussions helped us connect the mathematical concepts with their actual applications in computational gastronomy.
+
+4. LIMITATIONS IDENTIFIED IN THE PAPER
+
+We examined the limitations explicitly discussed by the authors and considered why they matter for further research.
+
+4.1 Sparse Utensil and Cooking-Process Information
+
+The paper mentions that RecipeDB contains limited information about utensils and cooking processes. In particular, 14,601 recipes did not contain information about preferred utensils.
+
+This means that clustering based on these features may be affected by missing information.
+
+4.2 Ingredient Aliases and Ingredient States
+
+The authors acknowledge that their study does not adequately account for ingredient aliases or the state of ingredients.
+
+Different names may refer to the same ingredient, while the same ingredient may have different culinary properties depending on whether it is raw, boiled, roasted, dried or processed.
+
+Ignoring these differences can affect the patterns discovered during mining.
+
+4.3 Cooking Time and Preparation Time
+
+The study does not incorporate cooking time and preparation time as additional features.
+
+We discussed how these variables could help distinguish cuisines that use similar ingredients but employ different cooking techniques and preparation practices.
+
+4.4 Geographical Validation
+
+The authors use geographical relationships between cuisines to assess clustering results because a reliable quantitative validation metric for cuisine similarity is unavailable.
+
+However, geographical proximity does not necessarily imply culinary similarity. Historical migration, trade, colonisation and cultural exchange can create relationships between geographically distant cuisines.
+
+4.5 Influence of Climate, Economy and Genetics
+
+The paper raises questions about how external factors such as climate, economy and genetics influence cuisine patterns.
+
+These factors are not explicitly incorporated into the proposed clustering methodology, leaving scope for further investigation.
+
+4.6 Sensitivity to Pattern Selection and Thresholds
+
+We discussed the implications of selecting a fixed minimum support threshold.
+
+A threshold that is too high may eliminate meaningful but less frequent cuisine-specific combinations, while a threshold that is too low may introduce generic or noisy patterns.
+
+This makes threshold selection and sensitivity analysis important when reproducing or extending the methodology.
+
+5. POSSIBLE IMPROVEMENTS AND HOW WE DISCUSSED IMPLEMENTING THEM
+
+After understanding the methodology and its limitations, we discussed possible directions for addressing some of these problems.
+
+5.1 Ingredient Standardisation and Alias Handling
+- Use ingredient aliases to map different representations to a common canonical ingredient.
+- Apply text normalisation and ingredient-entity resolution.
+- Preserve the original ingredient name alongside its standardised representation.
+
+5.2 Incorporating Ingredient States
+- Distinguish between different states of the same ingredient, such as raw, dried, roasted, boiled and ground.
+- Represent ingredient state as an additional feature rather than treating every variation as an unrelated ingredient.
+- Investigate whether these distinctions improve the patterns discovered across cuisines.
+
+5.3 Adding Cooking and Preparation Information
+- Extract preparation time and cooking time wherever available.
+- Represent cooking actions as structured features.
+- Investigate whether similar ingredients prepared using different processes result in different cuisine representations.
+
+5.4 Improving Frequent Pattern Mining
+- Experiment with different minimum support thresholds.
+- Compare the number and quality of patterns obtained at different thresholds.
+- Investigate whether cuisine-specific thresholds could help identify patterns in cuisines with fewer recipes.
+
+5.5 Improving Cuisine Similarity Measurement
+- Compare the behaviour of Jaccard, Cosine and Euclidean distances.
+- Investigate alternative similarity representations suitable for sparse categorical data.
+- Examine how different feature representations affect the resulting dendrograms.
+
+5.6 Developing Better Validation Methods
+- Move beyond geographical proximity as the only validation reference.
+- Investigate historical and cultural relationships between cuisines.
+- Compare clustering results against independently established culinary relationships.
+- Examine the stability of clusters under different feature and distance configurations.
+
+These were discussed as possible research directions rather than completed implementations.
+
+6. OVERALL UNDERSTANDING AND RESEARCH OUTCOME
+
+This paper helped us understand how frequent pattern mining and clustering can be combined to study relationships between world cuisines.
+
+We developed a deeper understanding of FP-Growth, support, frequent itemsets, authenticity, feature vectorisation, distance metrics and hierarchical clustering.
+
+More importantly, we understood that computationally identifying cuisine similarity is not simply a matter of comparing ingredient lists. It requires careful consideration of ingredient representations, preparation methods, cultural context, missing information and the choice of similarity measures.
+
+The detailed study also helped us identify limitations in the existing methodology and think about how they could be addressed through improved data processing, richer feature representations and better validation techniques.
+
+This provided a foundation for exploring how the methodology could be reproduced on CulinaryDB and potentially extended to investigate more meaningful relationships between cuisines.

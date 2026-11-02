@@ -1,0 +1,840 @@
+# Research Log — Week 3: Exploratory Data Analysis and Reproduction of Culinary Patterns
+
+**Research Paper:** *Data-driven Investigations of Culinary Patterns in Traditional Recipes Across the World* — Navjot Singh and Ganesh Bagler (2018)
+
+**Practical Work:** Data-Driven Investigation of Culinary Patterns in What's Cooking?
+
+**Dataset:** Kaggle — What's Cooking? Recipe Classification Challenge
+
+**Team Members:** Manthan Kapoor and Satyam Singh
+
+**Professor:** Dr. Ganesh Bagler
+
+**Date of Presentation:** 19 August 2026
+
+---
+
+## 1. Objective of the Meeting
+
+Following our previous discussion, the professor assigned us the task of performing exploratory data analysis on the available recipe data and reproducing the findings and visualisations presented in the research paper.
+
+We proceeded with the Kaggle What's Cooking? dataset, which was provided for the assignment.
+
+Our objective was to translate our theoretical understanding of the research paper into an actual computational analysis.
+
+We wanted to investigate whether the broad statistical patterns discussed in the paper could also be observed in an independent recipe dataset.
+
+We divided our work into three major objectives:
+
+1. Understand the structure, composition and statistical properties of the What's Cooking? dataset.
+2. Perform comprehensive exploratory data analysis and reproduce the paper-inspired visualisations.
+3. Identify which findings from the original paper could be reproduced using the available dataset and explain the limitations preventing a complete reproduction.
+
+We also wanted to understand the differences between the original CulinaryDB dataset and What's Cooking?, particularly in terms of data structure, geographical coverage, ingredient representation and the availability of chemical flavor information.
+
+## 2. Understanding the What's Cooking? Dataset
+
+The first step was to inspect the dataset and understand its structure before beginning any analysis.
+
+The dataset was obtained from the Kaggle What's Cooking? competition.
+
+We used the training file, `train.json`, because it contained cuisine labels alongside recipe identifiers and ingredient lists.
+
+Each record contained three primary fields:
+
+- `id`: Unique identifier for a recipe.
+- `cuisine`: Cuisine label associated with the recipe.
+- `ingredients`: List of ingredients used in the recipe.
+
+An example of the structure was:
+
+```json
+{
+    "id": 10259,
+    "cuisine": "greek",
+    "ingredients": [
+        "romaine lettuce",
+        "black olives",
+        "grape tomatoes",
+        "garlic",
+        "feta cheese"
+    ]
+}
+```
+
+This simple structure was sufficient for investigating recipe composition, ingredient popularity, cuisine-wise distributions and ingredient-category patterns.
+
+### Dataset statistics
+
+Our initial exploration established the following:
+
+| Parameter | Value |
+|---|---:|
+| Total recipes | 39,774 |
+| Number of cuisines | 20 |
+| Unique ingredients | 6,714 |
+| Average recipe size | 10.77 |
+| Most represented cuisine | Italian |
+| Italian recipes | 7,838 |
+| Least represented cuisine | Brazilian |
+| Brazilian recipes | 467 |
+
+We also observed that the dataset had an uneven distribution of recipes across cuisines.
+
+Italian cuisine had substantially more observations than Brazilian cuisine, which became an important consideration when comparing the results across different regions.
+
+### Initial preprocessing
+
+We performed the following preprocessing operations:
+
+1. Loaded the JSON records into a structured pandas DataFrame.
+2. Examined the available columns and their data types.
+3. Checked missing values and duplicate recipe identifiers.
+4. Calculated recipe size by counting the number of ingredients in each recipe.
+5. Created an ingredient set for every recipe to avoid counting repeated ingredients more than once within the same recipe.
+6. Constructed ingredient-frequency statistics across the entire dataset.
+
+The report records that no rows were removed after the missing-value and duplicate-ID checks.
+
+An important distinction we established was between ingredient occurrences and recipe-level ingredient frequency.
+
+For example, if salt appears multiple times in a single recipe's ingredient list, it should still contribute only one count to the number of recipes containing salt.
+
+This is why we used sets for recipe-level ingredient counting.
+
+## 3. Differences Between CulinaryDB and What's Cooking?
+
+One of the most important parts of our presentation was explaining why the dataset used in our practical work was different from the dataset used in the original paper.
+
+We compared both datasets to understand what could and could not be reproduced.
+
+### A. Dataset-level comparison
+
+| Parameter | Original CulinaryDB study | What's Cooking? |
+|---|---|---|
+| Total recipes | 45,772 | 39,774 |
+| Geographical coverage | 22 geo-cultural regions | 20 cuisine labels |
+| Unique ingredients | 707 mapped ingredients in the paper's dataset representation | 6,714 ingredient strings |
+| Average recipe size | Approximately 9 | 10.77 |
+| Recipe information | Recipe details, ingredients and cooking procedures | ID, cuisine and ingredient list |
+| Ingredient categories | 21 categories | 16 rule-based categories in our analysis |
+| Flavor molecule information | Integrated with FlavorDB | Not provided |
+| Ingredient aliasing | Curated and standardised | No equivalent full aliasing pipeline |
+| Cooking procedure information | Available in the original compiled resource | Not available in the training records |
+
+### B. Difference in geographical representation
+
+The original paper grouped recipes into 22 geo-cultural regions.
+
+For example, it considered the Indian Subcontinent, Scandinavia, DACH countries, the British Isles and other geographical groupings.
+
+What's Cooking? instead contains 20 cuisine labels, such as:
+
+- Indian
+- Italian
+- Japanese
+- Mexican
+- Chinese
+- Thai
+- Greek
+- Brazilian
+- French
+
+These labels are not equivalent to the 22 regions used in the paper.
+
+For example, an Indian cuisine label cannot automatically be considered identical to the original paper's Indian Subcontinent region.
+
+We therefore treated the two datasets as separate representations of culinary traditions rather than assuming that their regional classifications were interchangeable.
+
+### C. Difference in ingredient representation
+
+The original study performed extensive ingredient aliasing.
+
+It standardised linguistic variations, synonyms, spelling differences and compound ingredients to establish a reliable mapping between recipe ingredients and FlavorDB.
+
+In contrast, What's Cooking? provides ingredient names as strings.
+
+For example, entries such as `garlic`, `garlic cloves` and `minced garlic` may be represented separately.
+
+This means that the 6,714 unique ingredient strings in our dataset should not be interpreted as 6,714 chemically distinct natural ingredients.
+
+We also recognised that the absence of a complete ingredient-aliasing process could affect the estimated ingredient diversity and frequency distributions.
+
+### D. Difference in flavor information
+
+This was the most significant limitation.
+
+The original research connected ingredients to their chemical flavor molecules through FlavorDB.
+
+This allowed the authors to calculate how many flavor compounds were shared between two ingredients.
+
+What's Cooking? does not provide:
+
+- Flavor molecule identifiers.
+- Chemical compound profiles.
+- Ingredient-to-flavor-molecule mappings.
+- Cooking-induced chemical transformations.
+- Ingredient quantities.
+
+Consequently, we could analyse which ingredients occurred together but could not establish whether those ingredients shared flavor molecules.
+
+We explicitly explained that ingredient co-occurrence and chemical flavor sharing are two different concepts.
+
+Two ingredients frequently occurring together in recipes do not necessarily share chemical flavor compounds.
+
+## 4. Technical Implementation: Libraries and Tools Used
+
+We implemented the analysis in Python using a Jupyter Notebook.
+
+The notebook was named:
+
+`culinary_patterns_analysis.ipynb`
+
+The implementation was deliberately kept within the scope of descriptive exploratory data analysis.
+
+### A. Python standard libraries
+
+**1. json**
+
+Used to read and parse the JSON dataset.
+
+We used `json.load()` to convert the contents of `train.json` into Python records that could subsequently be converted into a DataFrame.
+
+**2. zipfile**
+
+Used to inspect and extract the Kaggle dataset archive.
+
+The notebook also accounted for the possibility of a nested `train.json.zip` file.
+
+**3. io**
+
+Used for handling file streams during dataset extraction and loading.
+
+**4. pathlib**
+
+Used for filesystem navigation and locating the dataset archive and extracted files.
+
+This made the notebook more flexible than relying entirely on hardcoded file paths.
+
+### B. Data manipulation libraries
+
+**5. pandas**
+
+Pandas was the primary library used for data manipulation and aggregation.
+
+We used it for:
+
+- Converting JSON records into a DataFrame.
+- Examining the dataset structure.
+- Checking missing values.
+- Checking duplicate identifiers.
+- Creating derived columns.
+- Grouping recipes by cuisine.
+- Calculating mean, median, minimum and maximum recipe sizes.
+- Computing cuisine-wise ingredient statistics.
+- Creating pivot tables for heatmap visualisation.
+- Exporting the resulting analytical tables to CSV.
+
+Some of the important operations included:
+
+```python
+pd.DataFrame(data)
+
+df['recipe_size'] = df['ingredients'].apply(len)
+
+df['cuisine'].value_counts()
+
+df.groupby('cuisine')['recipe_size'].agg(
+    ['count', 'mean', 'median', 'min', 'max']
+)
+```
+
+**6. NumPy**
+
+NumPy was used for numerical support and reproducibility-related configuration.
+
+The report records its use for setting a random seed and supporting numerical operations.
+
+We did not use it to construct the original paper's randomised food-pairing models.
+
+### C. Collections and data structures
+
+**7. collections.Counter**
+
+This was particularly useful for ingredient-frequency analysis.
+
+A Counter allowed us to count how many recipes contained a particular ingredient.
+
+We used it for:
+
+- Overall ingredient frequency.
+- Cuisine-specific ingredient frequency.
+- Top 10 most frequent ingredients.
+- Top 5 ingredients within selected cuisines.
+
+**8. collections.defaultdict**
+
+We used `defaultdict` to maintain category and cuisine-level aggregations without repeatedly checking whether a dictionary key existed.
+
+It was useful in constructing the ingredient-category composition analysis.
+
+**9. Python sets**
+
+Sets played an important role in our preprocessing.
+
+For every recipe, we created an `ingredient_set`.
+
+This ensured that each ingredient was counted at most once per recipe during frequency calculations.
+
+Sets were also useful for calculating the number of unique ingredients within each cuisine through set unions.
+
+### D. Visualisation libraries
+
+**10. Matplotlib**
+
+Matplotlib was used to generate the majority of our visualisations.
+
+We used it for:
+
+- Line plots.
+- Bar charts.
+- Horizontal bar charts.
+- Recipe-size distributions.
+- Log-log rank-frequency curves.
+- Figure formatting and labelling.
+- Exporting figures as high-resolution PNG files.
+
+**11. Seaborn**
+
+Seaborn was used for the ingredient-category composition heatmap.
+
+We used `sns.heatmap()` with the `YlOrRd` colour map to represent the proportion of recipes containing different ingredient categories across cuisines.
+
+The figures were exported at 300 DPI.
+
+### Overall implementation stack
+
+| Purpose | Libraries |
+|---|---|
+| Dataset loading | json, zipfile, io, pathlib |
+| Data manipulation | pandas |
+| Numerical operations | NumPy |
+| Frequency counting | Counter, defaultdict |
+| Unique ingredient analysis | Python sets |
+| Statistical summaries | pandas, NumPy |
+| Visualisation | Matplotlib, Seaborn |
+| Development environment | Jupyter Notebook |
+
+We did not use machine learning libraries such as Scikit-learn or deep learning frameworks because the assignment focused on descriptive analysis rather than prediction or classification.
+
+## 5. Detailed Exploratory Data Analysis
+
+We then performed the analysis and generated the paper-inspired visualisations.
+
+### Analysis 1 — Ingredient Category Composition by Cuisine
+
+The original paper uses a heatmap to compare the ingredient-category composition of different world regions.
+
+We recreated a similar analysis using the What's Cooking? dataset.
+
+However, What's Cooking? does not provide official ingredient-category labels.
+
+Therefore, we developed a rule-based categorisation approach.
+
+We implemented an ingredient-category mapping function named:
+
+`assign_ingredient_category()`
+
+The function used keyword matching to assign each ingredient to one of 16 approximate categories:
+
+1. Vegetable
+2. Fruit
+3. Meat
+4. Seafood
+5. Dairy
+6. Legume
+7. Grain/Cereal
+8. Nut/Seed
+9. Spice
+10. Herb
+11. Oil/Fat
+12. Sauce/Condiment
+13. Sweetener
+14. Beverage
+15. Bakery
+16. Other
+
+For every recipe, we identified which categories appeared at least once.
+
+For every cuisine, we calculated the proportion of recipes containing each category.
+
+The formula was:
+
+\[
+P(c,k)=
+\frac{\text{Recipes in cuisine }c\text{ containing category }k}
+{\text{Total recipes in cuisine }c}
+\]
+
+We then constructed a cuisine-by-category matrix using pandas and plotted it using Seaborn.
+
+**Findings:**
+
+- Vegetables, spices and sauces/condiments appeared frequently across cuisines.
+- Different cuisines showed variations in their meat, seafood, dairy and legume composition.
+- Normalisation allowed comparisons between cuisines despite differences in recipe counts.
+- Our categories were approximate and dependent on the quality of the keyword-matching rules.
+
+We explicitly acknowledged that the categories were our analytical approximation, not official labels from the dataset or an exact reproduction of the original paper's 21-category system.
+
+### Analysis 2 — Recipe Size Distribution by Cuisine
+
+The original paper examines recipe-size distributions across different world regions.
+
+We reproduced a similar analysis.
+
+We defined recipe size as the number of ingredients in a recipe.
+
+For each cuisine, we calculated the frequency of recipes containing a particular number of ingredients.
+
+We converted the frequencies into percentages to make the distributions comparable.
+
+We also included a WORLD curve representing the complete dataset.
+
+The individual cuisine curves were displayed as thin lines, while the WORLD curve was highlighted using a thicker black line.
+
+We limited the horizontal axis to the 99th percentile for better visual readability.
+
+**Findings:**
+
+- Average recipe size across the dataset was approximately 10.77 ingredients.
+- Most cuisines exhibited a unimodal distribution.
+- Recipe sizes generally increased towards a peak and subsequently declined.
+- Moroccan, Indian and Vietnamese cuisines tended to have larger average recipe sizes.
+
+An important observation was that the original paper reported an average of approximately nine ingredients per recipe.
+
+We discussed why our result differed.
+
+The datasets were collected from different sources, contained different recipes and used different ingredient representations.
+
+Therefore, the difference in average recipe size was not necessarily an inconsistency in the analysis.
+
+### Analysis 3 — Ingredient Frequency-Rank Distribution
+
+This analysis was inspired by Figure 3(b) of the original paper.
+
+We wanted to understand whether a small number of ingredients dominated recipe composition across cuisines.
+
+For each cuisine, we counted the number of recipes containing each ingredient.
+
+We sorted the frequencies in descending order and assigned ranks to the ingredients.
+
+We then plotted ingredient rank against frequency using logarithmic scales on both axes.
+
+The WORLD curve represented the aggregate dataset.
+
+**Findings:**
+
+- A steep decrease in frequency was observed from the most popular ingredients towards lower-ranked ingredients.
+- A small number of staple ingredients appeared in many recipes.
+- Most ingredients appeared in relatively few recipes.
+- Individual cuisines differed in how quickly ingredient frequency decreased with rank.
+
+This demonstrated a head-heavy ingredient popularity distribution across the dataset.
+
+### Analysis 4 — Number of Unique Ingredients by Cuisine
+
+We investigated the ingredient vocabulary of each cuisine.
+
+For every cuisine, we collected all ingredients occurring across its recipes and calculated the number of distinct ingredient strings.
+
+The resulting values were sorted and plotted as a bar chart.
+
+**Findings:**
+
+- Italian cuisine had the largest ingredient vocabulary, with 2,929 unique ingredients.
+- Mexican cuisine also had a relatively large ingredient vocabulary.
+- Smaller cuisines still exhibited considerable ingredient diversity.
+
+We discussed why this metric should not be confused with the actual culinary diversity of a country.
+
+The number of unique ingredient strings is influenced by the number of recipes, ingredient naming conventions and the level of standardisation.
+
+It measures the breadth of the dataset's vocabulary rather than the completeness of a cuisine's real-world culinary traditions.
+
+### Analysis 5 — Number of Recipes by Cuisine
+
+We calculated the number of recipes belonging to each cuisine using pandas' `value_counts()` operation.
+
+The resulting frequency table was sorted and visualised using a bar chart.
+
+**Findings:**
+
+- Italian cuisine had the highest number of recipes: 7,838.
+- Brazilian cuisine had the lowest number: 467.
+- The dataset exhibited considerable class imbalance.
+
+We discussed why this imbalance was important.
+
+A larger number of recipes could provide more reliable estimates of ingredient frequencies, while smaller cuisines could have less stable estimates.
+
+We retained this information as context for interpreting all subsequent comparisons.
+
+### Analysis 6 — Average Recipe Size by Cuisine
+
+We calculated descriptive statistics for recipe size across all 20 cuisines.
+
+The statistics included:
+
+- Number of recipes.
+- Mean recipe size.
+- Median recipe size.
+- Minimum recipe size.
+- Maximum recipe size.
+
+We sorted the cuisines according to their mean recipe size and visualised the results using a bar chart.
+
+**Findings:**
+
+- Moroccan cuisine had the highest mean recipe size at approximately 12.91 ingredients.
+- Irish cuisine had the lowest mean recipe size at approximately 9.30 ingredients.
+- Indian, Moroccan and Cajun/Creole cuisines tended to contain more ingredients per recipe.
+
+We also discussed why a higher mean recipe size does not necessarily imply greater culinary complexity or quality.
+
+It is only a descriptive characteristic of the available recipes.
+
+### Analysis 7 — Ten Most Frequently Used Ingredients
+
+We calculated the overall frequency of each ingredient across the complete training dataset.
+
+The frequency represented the number of recipes containing an ingredient, not the total number of times its string occurred.
+
+We used `Counter` to generate the frequency table and selected the ten most frequent ingredients.
+
+The resulting horizontal bar chart showed:
+
+- Salt.
+- Onions.
+- Olive oil.
+- Water.
+- Garlic.
+- Sugar.
+- Garlic cloves.
+- Butter.
+- Ground black pepper.
+- All-purpose flour.
+
+The most frequently occurring ingredient was salt, which appeared in 18,048 recipes.
+
+This helped us identify the ingredients that dominated the overall dataset.
+
+### Analysis 8 — Cuisine-Specific Top Ingredients
+
+Finally, we investigated ingredient popularity within four individual cuisines:
+
+- Indian.
+- Italian.
+- Japanese.
+- Mexican.
+
+For each cuisine, we filtered the DataFrame, counted the recipes containing each ingredient and selected the five most frequent ingredients.
+
+Some interesting observations were:
+
+**Indian cuisine:**
+- Salt.
+- Onions.
+- Garam masala.
+- Water.
+- Ground turmeric.
+
+**Italian cuisine:**
+- Salt.
+- Olive oil.
+- Garlic cloves.
+- Grated Parmesan cheese.
+- Garlic.
+
+**Japanese cuisine:**
+- Soy sauce.
+- Salt.
+- Mirin.
+- Sugar.
+- Water.
+
+**Mexican cuisine:**
+- Salt.
+- Onions.
+- Ground cumin.
+- Garlic.
+- Olive oil.
+
+We discussed how global ingredient popularity and cuisine-specific ingredient popularity can reveal different patterns.
+
+Salt, for example, was highly prominent across multiple cuisines, whereas ingredients such as soy sauce and garam masala were more characteristic of particular dataset subsets.
+
+## 6. How We Implemented the Analysis in Python
+
+Our notebook followed a structured pipeline rather than treating every visualisation as an isolated task.
+
+The general workflow was:
+
+**Step 1 — Dataset loading**
+
+- Locate the Kaggle ZIP archive using `pathlib`.
+- Extract the training JSON file using `zipfile`.
+- Load its contents using `json`.
+- Convert the records into a pandas DataFrame.
+
+**Step 2 — Preprocessing**
+
+- Inspect columns and data types.
+- Check missing values and duplicate identifiers.
+- Calculate recipe sizes.
+- Create ingredient sets.
+- Prepare cuisine-level groupings.
+
+**Step 3 — Feature construction**
+
+We derived additional analytical features:
+
+- `recipe_size`: Number of ingredients in a recipe.
+- `ingredient_set`: Unique ingredients in a recipe.
+- Ingredient frequency: Number of recipes containing each ingredient.
+- Ingredient category: Rule-based category assigned to an ingredient.
+
+**Step 4 — Aggregation**
+
+We used:
+
+- `groupby()` for cuisine-level statistics.
+- `value_counts()` for categorical distributions.
+- `agg()` for descriptive statistics.
+- `Counter` for ingredient frequencies.
+- `defaultdict` for category aggregation.
+- `set.union()` for unique ingredient vocabularies.
+- `pivot()` and `pivot_table()` for constructing the heatmap matrix.
+
+**Step 5 — Visualisation**
+
+We generated the figures using Matplotlib and Seaborn.
+
+**Step 6 — Export**
+
+We saved the generated figures as PNG files at 300 DPI and exported the corresponding analytical tables as CSV files.
+
+This allowed us to keep the analysis reproducible and separate the underlying data calculations from their visual representation.
+
+## 7. Which Parts of the Original Paper Could We Reproduce?
+
+An important part of our work was determining the boundary between a paper-inspired reproduction and a genuine reproduction of the original experiments.
+
+We classified the original analyses into two groups.
+
+### Analyses we successfully reproduced in an adapted form
+
+| Original paper analysis | Our implementation |
+|---|---|
+| Ingredient-category composition | Rule-based category heatmap |
+| Recipe-size distribution | Cuisine-wise percentage distributions |
+| Ingredient popularity | Rank-frequency curves |
+| Regional/cuisine comparisons | Cuisine-wise descriptive analysis |
+| Ingredient popularity summaries | Overall and cuisine-specific top ingredients |
+
+These analyses used the recipe and ingredient information available in What's Cooking?.
+
+### Analyses that could not be reproduced
+
+**1. Chemical food-pairing scores**
+
+The original paper calculates the overlap of flavor molecules between ingredient pairs.
+
+We could not perform this because What's Cooking? does not contain FlavorDB mappings or chemical compound information.
+
+**2. Randomised cuisine experiments**
+
+The original paper compares actual cuisine compositions with several randomised controls.
+
+Although recipe-level randomisation could be implemented, reproducing the paper's food-pairing experiments requires flavor profiles for the ingredients.
+
+We therefore did not claim to reproduce those experiments.
+
+**3. Z-score analysis**
+
+The original paper uses Z-scores to measure how significantly the observed food-pairing patterns deviate from randomised counterparts.
+
+Without the corresponding flavor-sharing scores, we could not calculate comparable Z-scores.
+
+**4. Ingredient contribution analysis**
+
+The original paper measures the change in food-pairing scores after removing ingredients.
+
+We could not reproduce this chemical food-pairing contribution analysis without the flavor-molecule data.
+
+We deliberately avoided inventing flavor-pairing scores, substituting arbitrary ingredient similarities or presenting unsupported Z-scores.
+
+This was an important methodological decision that we explained in our presentation.
+
+## 8. Presentation to the Professor and Discussion
+
+After completing the analysis, we presented our notebook results and the final report to the professor.
+
+We explained the complete workflow, starting from the dataset structure and preprocessing, followed by the descriptive analysis, visualisations, findings and limitations.
+
+We also explained the reasoning behind choosing What's Cooking? and how its structure differed from the original CulinaryDB dataset.
+
+The presentation was not limited to showing charts. We discussed how each chart was constructed, what its axes represented, why particular normalisations were used and what conclusions could reasonably be drawn from it.
+
+### Questions and clarifications addressed during the discussion
+
+**A. Why did we use a different dataset from the original paper?**
+
+We explained that the provided What's Cooking? dataset offered structured recipe-level information, including cuisine labels and ingredient lists.
+
+It was sufficient for studying recipe sizes, ingredient popularity, category composition and cuisine-wise differences.
+
+However, it did not provide the complete flavor-molecule information needed for the original chemical food-pairing methodology.
+
+**B. Why was the average recipe size different from the original paper?**
+
+We explained that the original paper and our analysis used different recipe collections.
+
+Their sources, ingredient representations and recipe distributions were different.
+
+Therefore, the average number of ingredients was expected to vary.
+
+**C. Why did we use percentages for the category heatmap?**
+
+The number of recipes varied considerably across cuisines.
+
+Comparing raw category counts would have favoured cuisines with more recipes.
+
+By dividing the number of recipes containing a category by the total number of recipes in that cuisine, we obtained comparable proportions.
+
+**D. Why did we use sets instead of directly counting ingredient strings?**
+
+We wanted to measure the number of recipes containing an ingredient.
+
+If an ingredient occurred more than once in a recipe, counting every occurrence would artificially increase its frequency.
+
+Using sets ensured one contribution per ingredient per recipe.
+
+**E. Why did we use a rule-based ingredient categorisation system?**
+
+The dataset did not provide official ingredient categories.
+
+We therefore developed keyword-based categorisation to obtain an approximate category-level representation.
+
+We also acknowledged that this approach could misclassify ambiguous ingredients and would benefit from a more comprehensive ingredient ontology.
+
+**F. Does the number of unique ingredients indicate culinary diversity?**
+
+We clarified that it indicates the vocabulary represented in the dataset.
+
+It does not necessarily indicate the actual diversity of a cuisine because recipe counts, data sources, naming variations and preprocessing influence the result.
+
+**G. Can ingredient co-occurrence establish food pairing?**
+
+We discussed that ingredients occurring together in recipes demonstrate a culinary association, not necessarily chemical flavor compatibility.
+
+The original paper's methodology is based on flavor-molecule overlap, which is a different and more specific measurement.
+
+**H. Why did we not reproduce the randomised models and Z-scores?**
+
+We explained that those models were designed to compare flavor-sharing patterns.
+
+Without ingredient-to-molecule mappings, the necessary food-pairing scores could not be computed.
+
+We chose to document the limitation rather than report results that the available data could not support.
+
+Through this discussion, we clarified the assumptions behind our analyses, the meaning of our statistical measures and the limitations of the dataset.
+
+## 9. Limitations Identified During the Work
+
+Our practical work also helped us identify several limitations that could affect the interpretation of the results.
+
+### Dataset limitations
+
+1. The dataset contains only 20 cuisine labels, which are not directly equivalent to the 22 geographical regions of the original study.
+2. The recipe count is unevenly distributed across cuisines.
+3. Ingredient names are not fully standardised.
+4. The dataset does not provide quantities for ingredients.
+5. Cooking procedures and preparation methods are unavailable in the training records.
+6. Flavor molecule information is absent.
+7. Some recipes may contain ingredients that are represented using multiple names.
+
+### Methodological limitations
+
+1. Our 16-category classification is based on keyword rules and is not an official taxonomy.
+2. Ingredient frequency can be influenced by repeated staples and common recipe-writing conventions.
+3. Unique ingredient counts depend on naming consistency.
+4. Mean recipe size does not fully describe the distribution of recipe complexity.
+5. Descriptive patterns do not establish causal relationships.
+6. Our analyses do not establish whether ingredients have similar chemical flavor profiles.
+
+We also recognised that the dataset's class imbalance could affect comparisons and that a more sophisticated ingredient standardisation process would be necessary for more rigorous cross-cuisine analysis.
+
+## 10. Final Deliverables
+
+We organised the results into a reproducible Jupyter Notebook and a comprehensive analytical report.
+
+The report contained 14 pages, documenting the dataset, methodology, visualisations, observations, limitations and references.
+
+The notebook generated the following outputs:
+
+**Visualisations:**
+
+- Ingredient-category composition heatmap.
+- Recipe-size distribution.
+- Ingredient frequency-rank distribution.
+- Unique ingredients by cuisine.
+- Number of recipes by cuisine.
+- Average recipe size by cuisine.
+- Top 10 ingredients overall.
+- Top 5 ingredients in Indian cuisine.
+- Top 5 ingredients in Italian cuisine.
+- Top 5 ingredients in Japanese cuisine.
+- Top 5 ingredients in Mexican cuisine.
+
+All figures were saved in the `outputs/figures/` directory at 300 DPI.
+
+**CSV outputs:**
+
+- `cuisine_summary.csv`
+- `ingredient_frequency.csv`
+- `unique_ingredients_by_cuisine.csv`
+- `recipe_size_statistics.csv`
+- `top_ingredients_overall.csv`
+
+**Notebook:**
+
+- `culinary_patterns_analysis.ipynb`
+
+The complete analysis was generated through this notebook, allowing the figures and tables to be traced back to the underlying computations.
+
+## 11. Outcome and Learning
+
+This stage marked our transition from understanding research methodology to implementing it on an actual dataset.
+
+The major outcomes were:
+
+- Successfully loaded and analysed 39,774 recipes across 20 cuisines.
+- Identified 6,714 unique ingredient strings.
+- Developed a preprocessing pipeline for recipe-level analysis.
+- Implemented rule-based ingredient categorisation.
+- Reproduced several paper-inspired statistical visualisations.
+- Investigated cuisine-wise ingredient popularity and recipe-size distributions.
+- Understood the differences between CulinaryDB and What's Cooking?.
+- Identified the exact reasons why chemical food-pairing experiments could not be reproduced.
+- Presented the findings and defended our methodological choices.
+- Discussed the assumptions and limitations of our implementation with the professor.
+
+Most importantly, we understood that reproducing research is not simply about generating similar-looking graphs.
+
+It requires understanding the underlying data, reconstructing the methodology, identifying unavailable variables and being transparent about which conclusions the available evidence supports.
+
+**Research Status:** Completed the assigned exploratory analysis and paper-inspired reproduction using the provided What's Cooking? dataset. The results were presented and discussed with the professor.
+
+**Next what we were asked: **Perform comprehensive exploratory data analysis (EDA) on the original CulinaryDB dataset, examining its structure, ingredient distribution, regional composition, ingredient categories, recipe characteristics and relationships between ingredients. Reproduce the statistical analyses and visualisations reported in the original research paper using the actual dataset, establish a reliable baseline, and investigate the underlying patterns before proceeding towards further research extensions such as quantity-aware food pairing and chemical flavor-based modelling.

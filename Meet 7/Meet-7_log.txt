@@ -1,0 +1,1039 @@
+# Research Log – Initial Exploratory Data Analysis of CocktailDB
+
+**Research Area:** Computational Gastronomy / Data-Driven Culinary Analysis  
+**Dataset:** CocktailDB – College/Professor-Provided Dataset  
+**Report Generated:** `recipes_extended_eda_report.pdf`  
+**Notebook:** `recipes_extended_eda.ipynb`  
+**Research Supervisor:** Dr. Ganesh Bagler  
+**Researcher:** Satyam Singh
+
+---
+
+## 1. Background and Introduction
+
+At this stage of the research, we moved from studying existing computational gastronomy literature towards working directly with a recipe dataset collected and provided by the college and our professor.
+
+We were given CocktailDB, a structured collection of cocktail and recipe information. The dataset contained recipe names, ingredients and several additional attributes, including ratings, votes, preparation time, nutritional information and recipe categories.
+
+The objective of this initial exercise was to understand the dataset before attempting more sophisticated computational analysis.
+
+We wanted to investigate what information the dataset contained, how complete and reliable its attributes were, what patterns could be extracted from the available recipe metadata, and what analytical possibilities existed for studying cocktail recipes.
+
+Rather than immediately implementing machine learning or complex statistical models, we began with exploratory data analysis (EDA).
+
+The initial analysis focused on:
+
+1. Understanding the dataset structure and available attributes.
+2. Examining missing values and identifying columns unsuitable for analysis.
+3. Studying the distribution of recipe ratings and user votes.
+4. Investigating preparation-time distributions.
+5. Understanding the distribution of recipes across categories.
+6. Exploring relationships between ingredient counts, preparation time, ratings and votes.
+7. Identifying frequently occurring ingredients.
+8. Examining correlations between numerical attributes.
+9. Identifying limitations and potential research directions for subsequent investigation.
+
+The result of this initial exercise was a 15-page exploratory data analysis report containing eleven major visual analyses, statistical summaries, observations and proposed next steps.
+
+**Important dataset clarification:** The report uses the description "extended recipes dataset" and mentions an augmented CulinaryDB corpus. However, the dataset used in this research stage was the CocktailDB dataset provided by the college/professor. The analysis documented here concerns that initial CocktailDB exercise.
+
+## 2. Dataset Description and Structure
+
+The dataset contained cocktail and recipe records with several attributes describing the recipes and their associated metadata.
+
+The principal columns examined were:
+
+| Attribute | Description |
+|---|---|
+| Name | Name of the cocktail or recipe |
+| Ingredients | Ingredient information associated with the recipe |
+| ingredient_list | Ingredient-list representation |
+| Ratings | User-provided recipe ratings |
+| Votes | Number of votes received by a recipe |
+| Prep_Time | Preparation time, stored in textual formats |
+| Nutrients | Nutritional information |
+| Category | Recipe or cocktail category |
+| Cuisine | Cuisine information, where available |
+
+The dataset was particularly interesting because it combined recipe composition with user-generated information.
+
+This gave us an opportunity to investigate not only what ingredients were used in cocktails, but also how recipes were rated, how popular they were, how much preparation time they required and how they were distributed across categories.
+
+### 2.1 Dataset Size After Cleaning
+
+According to the generated report:
+
+| Parameter | Value |
+|---|---:|
+| Total recipes after cleaning | 16,895 |
+| Unique categories | 429 |
+| Recipes with ratings | 8,017 |
+| Recipes with votes | 8,005 |
+| Recipes with parsed preparation time | 6,906 |
+| Mean rating | 4.25 |
+| Median rating | 4.45 |
+| Mean votes | 37.8 |
+| Median votes | 30 |
+| Mean preparation time | 8.3 minutes |
+| Median preparation time | 3 minutes |
+| Mean ingredient count | 4.7 |
+| Median ingredient count | 4 |
+
+These statistics provided our first quantitative understanding of the dataset.
+
+One of the immediate observations was that the dataset contained substantially more recipe information than could be reliably used for every possible analysis. Several columns had high proportions of missing values, which became an important consideration during preprocessing.
+
+## 3. Technical Environment and Libraries
+
+The analysis was implemented using Python in a Jupyter Notebook named `recipes_extended_eda.ipynb`.
+
+The workflow was primarily based on data inspection, preprocessing, feature engineering, statistical aggregation and visualisation.
+
+### 3.1 Python
+
+Python was used as the primary programming language for:
+
+- Loading and processing the dataset.
+- Cleaning inconsistent values.
+- Creating additional numerical features.
+- Calculating descriptive statistics.
+- Analysing recipe categories.
+- Investigating ingredient frequencies.
+- Generating visualisations.
+
+### 3.2 Pandas (`pandas`)
+
+Pandas was the primary data-processing library.
+
+It was used for:
+
+- Loading and organising the dataset into DataFrames.
+- Inspecting rows, columns and data types.
+- Identifying missing values.
+- Removing duplicate or unnecessary columns.
+- Converting columns into numerical formats.
+- Grouping recipes by category.
+- Calculating descriptive statistics.
+- Filtering records for individual analyses.
+- Generating correlation matrices.
+
+Important Pandas operations used in the workflow included:
+
+| Operation | Purpose |
+|---|---|
+| `isna()` | Identify missing values |
+| `mean()` | Calculate averages and missing-value proportions |
+| `value_counts()` | Count category and ingredient occurrences |
+| `drop()` | Remove unnecessary columns |
+| `dropna()` | Exclude missing observations from specific analyses |
+| `groupby()` | Group recipes by category |
+| `agg()` | Calculate multiple descriptive statistics |
+| `sort_values()` | Sort categories and analytical results |
+| `corr()` | Calculate correlations between numerical features |
+
+### 3.3 Matplotlib (`matplotlib.pyplot`)
+
+Matplotlib was used for general-purpose data visualisation.
+
+It was used to generate:
+
+- Horizontal and vertical bar charts.
+- Histograms.
+- Scatter plots.
+- Rating distributions.
+- Vote distributions.
+- Preparation-time distributions.
+- Ingredient-frequency charts.
+- Comparative visualisations of numerical variables.
+
+We also used logarithmic axes where necessary to make highly skewed distributions easier to interpret.
+
+### 3.4 Seaborn (`seaborn`)
+
+Seaborn was used for statistical visualisations, particularly:
+
+- Box plots for comparing preparation-time distributions across categories.
+- Correlation heatmaps for examining relationships between numerical features.
+
+### 3.5 Python Regular Expressions (`re`)
+
+The `re` module was used to parse preparation-time strings.
+
+Preparation time was stored in different textual formats. We used regular expressions to extract numerical values and identify time units before converting the information into a common unit: minutes.
+
+This was important because preparation-time information could not be analysed directly as ordinary numerical data.
+
+### 3.6 Python Collections (`collections.Counter`)
+
+We used `Counter` to calculate the frequency of raw ingredient strings across recipes.
+
+This helped us identify the ten most frequently occurring ingredient strings.
+
+However, the counting was performed on the original ingredient strings, including quantities and measurements, rather than on fully normalised ingredient entities.
+
+### 3.7 Technical Stack Summary
+
+| Technology | Role |
+|---|---|
+| Python | Main programming language |
+| Jupyter Notebook | Interactive analysis environment |
+| Pandas | Data processing and statistical aggregation |
+| Matplotlib | General-purpose visualisation |
+| Seaborn | Statistical plots and heatmaps |
+| `re` | Preparation-time parsing |
+| `collections.Counter` | Ingredient-frequency counting |
+
+The report does not document the use of a separate database management system. We therefore treated the exercise as dataset-based processing using Pandas rather than claiming that we implemented a SQL database.
+
+## 4. Initial Dataset Inspection and Missing-Value Analysis
+
+Our first step was to understand the quality and completeness of the available data.
+
+Before performing any analysis, we inspected the dataset structure and calculated the percentage of missing values in every column.
+
+We used:
+
+`df.isna().mean() * 100`
+
+This calculated the proportion of missing observations in each column.
+
+We then sorted the results in descending order and generated a horizontal bar chart to visualise missingness.
+
+### 4.1 Observations from Missing-Value Analysis
+
+The missingness analysis revealed:
+
+| Attribute | Approximate Missing Values |
+|---|---:|
+| Nutrients | 66.3% |
+| Prep_Time | 59.1% |
+| Category | 59.0% |
+| Cuisine | More than 99% |
+| Ratings | 52.5% |
+| Votes | 52.6% |
+| Ingredients | 0% |
+| Name | 0% |
+
+The missingness plot on page 3 of the report made this pattern particularly clear.
+
+**Important observations:**
+
+1. Ingredients and recipe names were fully populated, making them reliable starting points for recipe-level analysis.
+2. Ratings and votes were available for only around half of the recipes.
+3. Preparation-time information was available for a relatively small subset.
+4. Nutritional information was highly incomplete.
+5. Cuisine was missing for more than 99% of records.
+
+An important distinction emerged here: missingness was not necessarily random.
+
+The absence of cuisine information appeared to be structural because the dataset primarily contained cocktail-type recipes, for which conventional cuisine labels were often not meaningful or recorded.
+
+This meant that we could not simply interpret missing cuisine values as ordinary missing observations or use them as a valid category.
+
+### 4.2 Initial Understanding
+
+This exercise taught us that the presence of a column in a dataset does not automatically make it suitable for statistical analysis.
+
+Before using an attribute, we needed to understand:
+
+- How much information was available.
+- Whether the available observations were representative.
+- Whether missingness was random or structural.
+- Whether the attribute could be converted into a consistent analytical format.
+
+This became one of the most important lessons from the initial EDA.
+
+## 5. Data Cleaning and Preprocessing
+
+After inspecting the dataset, we performed the cleaning operations required for subsequent analysis.
+
+The preprocessing workflow included:
+
+- Checking for duplicate columns.
+- Removing the duplicate `Name` column after confirming that its contents were identical.
+- Dropping `Cuisine` from the main analysis because more than 99% of its values were missing.
+- Removing rows without ingredient information.
+- Converting `Ratings` and `Votes` into numerical representations.
+- Mapping invalid or non-numeric values to missing values.
+- Parsing preparation-time information into minutes.
+
+### 5.1 Why Cuisine Was Excluded
+
+Cuisine information was missing for more than 99% of the dataset.
+
+Since the dataset predominantly represented cocktail-type recipes, the column did not provide sufficient information for meaningful cuisine-level comparisons.
+
+We therefore excluded it from the main analysis rather than assigning artificial labels or drawing conclusions from a very small subset.
+
+However, this did not establish that cuisine-based analysis would be impossible in every future study. It meant that this particular dataset, in its available form, was unsuitable for such analysis.
+
+### 5.2 Why Nutrients Were Not Analysed
+
+The Nutrients column contained approximately 66.3% missing values.
+
+We decided not to include it in the main analysis because the available information was too sparse for reliable dataset-wide aggregation.
+
+We identified nutrient-focused analysis on the non-missing subset as a possible future direction.
+
+### 5.3 Preparation-Time Cleaning
+
+Preparation time was stored as text rather than a consistent numerical variable.
+
+We used regular expressions to extract the numerical value and corresponding time unit.
+
+The resulting values were converted into minutes and stored in:
+
+`prep_time_minutes`
+
+Values that could not be parsed reliably, including bare numbers without recognisable units, were treated as missing.
+
+This allowed us to conduct statistical analysis on the available preparation-time observations.
+
+## 6. Feature Engineering
+
+After cleaning, we created additional features that would allow us to investigate relationships between different recipe attributes.
+
+### 6.1 Number of Ingredients
+
+We derived:
+
+`num_ingredients`
+
+This feature represented the number of ingredients associated with each recipe.
+
+It allowed us to examine whether recipes containing more ingredients required more preparation time or received different ratings.
+
+### 6.2 Preparation Time in Minutes
+
+We converted the original textual preparation-time information into:
+
+`prep_time_minutes`
+
+This made it possible to calculate mean and median preparation times, plot distributions and compare preparation times across recipe categories.
+
+### 6.3 Vote-Adjusted Rating
+
+One of the important feature-engineering steps involved adjusting recipe ratings based on the number of votes received.
+
+We noticed that recipes with very few votes could have extreme ratings. For example, a recipe with a single vote could receive a rating of 5.0 even though the evidence supporting that rating was limited.
+
+To address this issue, we implemented a Bayesian-style weighted rating:
+
+`adjusted_rating = (V * R + m * C) / (V + m)`
+
+Where:
+
+- `V` represents the recipe's vote count.
+- `R` represents its original rating.
+- `C` represents the global mean rating.
+- `m` represents the smoothing parameter, set to 10.
+
+The global mean acted as a prior estimate, while the recipe's own rating contributed according to the number of votes it had received.
+
+**Why we used this:**
+
+A recipe with many votes should generally provide stronger evidence of its rating than a recipe with only one or two votes.
+
+The adjustment therefore reduced the influence of extreme ratings based on very small sample sizes.
+
+We used the adjusted ratings to rank recipes and identify the top ten recipes by vote-adjusted rating.
+
+This introduced us to the idea that a numerical observation should sometimes be interpreted in the context of the amount of evidence supporting it.
+
+## 7. Detailed Exploratory Analyses and Observations
+
+After preprocessing and feature engineering, we divided the notebook into independent analytical sections.
+
+The report contained eleven major visual analyses.
+
+### 7.1 Recipe Count by Category
+
+We first examined how recipes were distributed across the different categories.
+
+Using:
+
+`value_counts()` on the `Category` column
+
+we calculated the number of recipes in each category.
+
+We then selected the top 20 categories and generated a vertical bar chart.
+
+**Observations:**
+
+- The dataset contained 429 unique categories.
+- The most common category was `Shots & Shooters`, with 535 recipes.
+- A small number of categories accounted for a substantial proportion of the records.
+- The distribution was heavily right-skewed.
+
+This showed that the dataset did not have a uniform distribution of recipes across categories.
+
+**What we learned:**
+
+Category-level comparisons needed to account for unequal sample sizes. A category with a large number of recipes could provide more stable estimates than one containing only a few observations.
+
+### 7.2 Distribution of Ratings
+
+We filtered the dataset to retain recipes with available ratings and plotted a 20-bin histogram.
+
+**Observations:**
+
+- Ratings were available for 8,017 out of 16,895 recipes.
+- The mean rating was 4.25.
+- The median rating was 4.45.
+- Most ratings were concentrated between 4.0 and 5.0.
+- Very low ratings, particularly those below 2.0, were relatively rare.
+
+The distribution was strongly left-skewed, with a concentration towards the higher end of the rating scale.
+
+**Interpretation:**
+
+The high concentration of ratings could indicate that users generally rated recipes positively.
+
+However, we also recognised the possibility of rating inflation or selection bias.
+
+For example, users who choose to rate a recipe may not represent all users who viewed or attempted it.
+
+Therefore, the observed distribution could not automatically be interpreted as an objective measure of recipe quality.
+
+**What we learned:**
+
+User-generated ratings are behavioural data. They can provide useful information about perceived quality, but they are affected by participation patterns, rating behaviour and selection effects.
+
+### 7.3 Distribution of Votes
+
+We then examined the number of votes received by recipes.
+
+The vote distribution was highly right-skewed, so we plotted a 40-bin histogram using a logarithmic frequency axis.
+
+**Observations:**
+
+- Votes were available for 8,005 out of 16,895 recipes.
+- Mean votes: 37.8.
+- Median votes: 30.
+- Most recipes received relatively few votes.
+- A small number of recipes received hundreds or even thousands of votes.
+
+This was characteristic of a heavy-tailed user-generated dataset.
+
+A small number of recipes attracted substantially more attention than the majority.
+
+**What we learned:**
+
+The mean alone was not sufficient to describe vote distributions.
+
+The difference between mean and median, along with the long right tail, indicated that a few highly popular recipes influenced the overall average.
+
+This also motivated us to consider vote counts while interpreting recipe ratings.
+
+### 7.4 Relationship Between Ratings and Votes
+
+We generated a scatter plot with:
+
+- Votes on the horizontal axis.
+- Ratings on the vertical axis.
+- A logarithmic scale for votes.
+
+**Observations:**
+
+- Recipes with very few votes showed considerable rating variation.
+- Some recipes with very few votes had ratings close to 5.0, while others had much lower ratings.
+- As vote counts increased, ratings appeared to become more concentrated around approximately 4.0–4.5.
+- The ratings of highly voted recipes were generally less extreme than those of recipes with very few votes.
+
+This motivated the use of vote-adjusted ratings.
+
+### 7.4.1 Ranking Recipes Using Vote-Adjusted Ratings
+
+We applied the weighted rating formula described earlier and ranked recipes using the resulting adjusted scores.
+
+Some of the top-ranked entries included:
+
+| Recipe | Original Rating | Votes | Adjusted Rating |
+|---|---:|---:|---:|
+| El Diablo Cocktail | 5.00 | 74 | 4.911 |
+| Simple Syrup | 4.90 | 304 | 4.879 |
+| Grandma's Apple Pie 'Ala Mode' Moonshine | 4.90 | 219 | 4.872 |
+| Whiskey Slush | 4.90 | 80 | 4.828 |
+| Skeleton Key Cocktail | 5.00 | 33 | 4.827 |
+| Easy Frozen Margaritas | 4.90 | 72 | 4.821 |
+
+Other entries in the top ten included Sex on the Beach, Irish Old Fashioned, Vruca Rakija Recipe and Beer Margaritas.
+
+**What we learned:**
+
+A ranking based only on original ratings could overemphasise recipes with very few votes.
+
+Including the vote count provided a more balanced ranking by considering both rating and supporting evidence.
+
+We also understood that the smoothing parameter influences the final ranking and should be examined carefully in a more rigorous study.
+
+### 7.5 Average Rating by Category
+
+We investigated whether certain recipe categories received higher average ratings than others.
+
+We grouped the dataset by category and calculated the average rating.
+
+To reduce the influence of categories containing very few observations, we retained categories with at least five recipes.
+
+We then sorted the categories by average rating and visualised the top 20.
+
+**Observations:**
+
+- `Grenadine Cocktails` had the highest average rating among the categories satisfying the minimum five-recipe threshold, at approximately 4.83.
+- Several categories had relatively high average ratings.
+- Categories containing very few recipes tended to produce more extreme average values.
+
+**What we learned:**
+
+Category-level average ratings needed to be interpreted alongside category sample sizes.
+
+A high average rating based on a small number of recipes was not necessarily comparable to a similar average calculated from a much larger group.
+
+The minimum sample-size threshold helped reduce some of this instability, although it did not completely eliminate sampling uncertainty.
+
+### 7.6 Preparation-Time Distribution
+
+We converted the preparation-time information into minutes using regular expressions.
+
+Preparation time was available for 6,906 out of 16,895 recipes.
+
+We calculated descriptive statistics and plotted a 30-bin histogram.
+
+For visualisation, we capped the displayed range at the 99th percentile to reduce the influence of extreme values.
+
+**Observations:**
+
+- Mean preparation time: 8.3 minutes.
+- Median preparation time: 3 minutes.
+- Most recipes required less than 15 minutes.
+- The distribution was concentrated around relatively short preparation times.
+- The mean was higher than the median, indicating a right-skewed distribution.
+
+This was consistent with the cocktail-oriented nature of the dataset, where many recipes involve relatively quick preparation.
+
+**What we learned:**
+
+Preparation time was not normally distributed.
+
+The mean could be influenced by a smaller number of recipes with longer preparation times, making the median a useful complementary statistic.
+
+We also recognised that parsing textual time fields introduces uncertainty when the original values are inconsistent or ambiguous.
+
+### 7.7 Preparation Time by Category
+
+We selected the ten most frequently represented categories and compared their preparation-time distributions using Seaborn box plots.
+
+**Observations:**
+
+- Preparation times varied considerably between categories.
+- Some categories showed relatively concentrated distributions.
+- Others exhibited greater variation and unusually long preparation times.
+- Outliers were present in several categories.
+
+This suggested that preparation time was not uniform across cocktail categories.
+
+**What we learned:**
+
+Box plots provided information beyond category averages.
+
+They helped us understand the median, quartiles, spread and outliers within each category.
+
+However, comparisons between categories still depended on the number of usable preparation-time observations in each group.
+
+### 7.8 Ingredient Count vs. Preparation Time and Ratings
+
+We investigated whether the number of ingredients in a recipe had an observable relationship with preparation time or ratings.
+
+We generated two scatter plots:
+
+1. Number of ingredients against preparation time.
+2. Number of ingredients against ratings.
+
+**Observations:**
+
+- Mean ingredient count: 4.7.
+- Median ingredient count: 4.
+- A weak positive association was observed between ingredient count and preparation time.
+- No clear linear relationship was observed between ingredient count and ratings.
+
+This suggested that recipes containing more ingredients might require slightly more preparation time, but the relationship was weak.
+
+Similarly, a larger ingredient count did not necessarily imply a higher or lower user rating.
+
+**What we learned:**
+
+Recipe complexity cannot be represented adequately through ingredient count alone.
+
+The number of ingredients does not capture their quantities, preparation methods, interactions, proportions or the complexity of the actual preparation process.
+
+We therefore recognised that ingredient count was a useful basic feature but an incomplete representation of recipe complexity.
+
+### 7.9 Most Frequently Occurring Ingredient Strings
+
+We used `collections.Counter` to count ingredient strings across recipes.
+
+We then selected the ten most frequent strings and generated a horizontal bar chart.
+
+**Observations:**
+
+- Ice was the most frequently occurring ingredient string, appearing 619 times.
+- Other frequent entries included:
+  - 1 oz Vodka
+  - Lemon
+  - 2 oz Vodka
+  - Orange
+  - Whipped cream
+  - Apple
+  - 1.5 oz Vodka
+  - Sugar
+  - 1 oz Coffee Liqueur
+
+This revealed the importance of ingredients such as ice, vodka and citrus-related components in the dataset.
+
+**An important limitation emerged here:**
+
+We were counting raw ingredient strings rather than canonical ingredient identities.
+
+For example:
+
+- `1 oz Vodka`
+- `2 oz Vodka`
+- `1.5 oz Vodka`
+
+were treated as separate entries.
+
+Similarly, different measurements or quantities of the same ingredient could appear as independent strings.
+
+This meant that the frequency chart did not represent the true frequency of canonical ingredients.
+
+**What we learned:**
+
+Ingredient normalisation and entity resolution were necessary before conducting reliable ingredient-frequency analysis.
+
+We needed to separate:
+
+- Ingredient identity.
+- Quantity.
+- Measurement unit.
+- Preparation or descriptive information.
+
+This became one of the most important limitations identified during the initial analysis.
+
+### 7.10 Correlation Heatmap of Numerical Features
+
+We calculated a Pearson correlation matrix for:
+
+- Ratings
+- Votes
+- `prep_time_minutes`
+- `num_ingredients`
+
+We visualised the resulting matrix using an annotated Seaborn heatmap.
+
+The reported correlation values were:
+
+| Feature Pair | Pearson Correlation |
+|---|---:|
+| Ratings – Votes | 0.036 |
+| Ratings – Preparation Time | -0.034 |
+| Ratings – Number of Ingredients | -0.079 |
+| Votes – Preparation Time | -0.009 |
+| Votes – Number of Ingredients | -0.011 |
+| Preparation Time – Number of Ingredients | -0.0028 |
+
+**Observations:**
+
+- Ratings and votes showed an extremely weak positive linear correlation.
+- Preparation time and ingredient count showed an almost negligible linear correlation in the correlation matrix.
+- Ratings and ingredient count showed a very weak negative correlation.
+- No strong linear relationships were observed among the selected numerical variables.
+
+This was an important finding because some scatter plots appeared to suggest weak relationships, but the correlation matrix showed that these associations were very small.
+
+**What we learned:**
+
+Pearson correlation measures linear association, not causation.
+
+A near-zero Pearson correlation does not prove that two variables are completely unrelated. Nonlinear relationships, subgroup effects and other dependencies may still exist.
+
+We also understood that missing-value handling and the subset of records used for each correlation can influence the resulting matrix.
+
+## 8. Consolidated Observations from the Initial CocktailDB EDA
+
+The analysis produced several important observations about the dataset.
+
+### 8.1 Dataset Structure
+
+- The cleaned dataset contained 16,895 recipes.
+- It contained 429 unique categories.
+- Ingredients and recipe names were fully populated.
+- Cuisine information was almost entirely absent.
+- Nutritional and user-generated metadata were substantially incomplete.
+
+### 8.2 User Behaviour and Popularity
+
+- Ratings were concentrated towards the higher end of the scale.
+- Votes followed a highly right-skewed distribution.
+- A small number of recipes received disproportionately large numbers of votes.
+- Recipes with very few votes displayed greater rating variability.
+- Vote-adjusted ratings provided a more balanced way of ranking recipes.
+
+### 8.3 Preparation-Time Characteristics
+
+- Most available preparation times were relatively short.
+- The median preparation time was considerably lower than the mean.
+- Preparation time varied between categories.
+- The presence of extreme values and inconsistent textual formats required careful treatment.
+
+### 8.4 Ingredient Characteristics
+
+- The average recipe contained approximately 4.7 ingredients.
+- Ice was the most frequent raw ingredient string.
+- Quantity-based ingredient strings were counted separately.
+- Ingredient normalisation was necessary for meaningful comparisons.
+
+### 8.5 Relationships Between Variables
+
+- Ingredient count showed a weak positive association with preparation time in the visual analysis.
+- Ingredient count did not show a clear relationship with ratings.
+- The Pearson correlation matrix showed very weak linear relationships among the selected numerical variables.
+- Ratings and votes were not interchangeable measures of recipe popularity or quality.
+
+### 8.6 Category Characteristics
+
+- The dataset had 429 unique categories.
+- Shots & Shooters was the most represented category.
+- Grenadine Cocktails had the highest mean rating among categories with at least five recipes.
+- Category-level comparisons required consideration of sample size.
+
+These findings provided a baseline understanding of the dataset and highlighted several questions that could not be answered through basic descriptive EDA alone.
+
+## 9. Limitations and Problems Identified
+
+The initial analysis also exposed several limitations in both the dataset and our methodology.
+
+We documented these because they would directly influence the reliability of any future statistical or computational study.
+
+### 9.1 Extensive Missing Values
+
+A substantial portion of the dataset lacked nutritional, preparation-time, rating, vote and category information.
+
+This restricted the number of observations available for different analyses.
+
+More importantly, the observations available for one analysis were not necessarily the same observations available for another.
+
+For example, nutritional analysis would have been based on a much smaller subset than ingredient-frequency analysis.
+
+### 9.2 Cuisine Information Was Unusable
+
+Cuisine was missing for more than 99% of the dataset.
+
+Consequently, cuisine-based comparisons could not be performed reliably in this initial exercise.
+
+We could not meaningfully investigate regional or national differences using this field.
+
+### 9.3 Nutritional Analysis Was Not Completed
+
+Nutrients contained approximately 66.3% missing values.
+
+We excluded it from the main analysis rather than producing potentially misleading conclusions from incomplete information.
+
+A separate nutrient-focused analysis on non-missing records remained a possible direction.
+
+### 9.4 Ingredient Normalisation Was Incomplete
+
+This was one of the most important methodological limitations.
+
+We counted raw ingredient strings rather than canonical ingredients.
+
+Quantity and measurement information remained embedded in the strings.
+
+As a result:
+
+- The same ingredient could appear under multiple textual representations.
+- Ingredient frequencies could be fragmented.
+- The top ingredient ranking could differ from a ranking based on canonical ingredient identities.
+- Reliable ingredient co-occurrence analysis would require a normalisation pipeline.
+
+A more complete approach would involve extracting ingredient names, quantities and units separately, followed by canonicalisation and alias resolution.
+
+### 9.5 Preparation-Time Parsing Was Imperfect
+
+The original preparation-time field contained inconsistent formats.
+
+Regular expressions could extract many values, but some entries could not be parsed reliably.
+
+Bare numerical values without recognisable units were treated as missing.
+
+There was also a possibility that some unusually large values represented incorrect or inconsistently recorded information.
+
+Therefore, parsing alone was not sufficient to guarantee that all preparation-time values were semantically valid.
+
+### 9.6 Ratings Could Be Biased
+
+Most available ratings were concentrated between 4.0 and 5.0.
+
+This could reflect:
+
+- Rating inflation.
+- Selection bias.
+- User participation patterns.
+- Differences in the number of ratings received by individual recipes.
+
+We could not treat the rating distribution as an unbiased measure of objective recipe quality.
+
+### 9.7 Votes Were Highly Skewed
+
+A small number of recipes received very large numbers of votes.
+
+The mean vote count was therefore influenced by extreme observations.
+
+Median and logarithmic visualisations were more informative than relying on the mean alone.
+
+### 9.8 Vote-Adjusted Ratings Had Parameter Dependence
+
+The adjusted rating used a smoothing parameter of 10.
+
+Although this helped account for low vote counts, the final ranking depended on the selected parameter.
+
+A more complete study could investigate sensitivity to different smoothing values and evaluate whether the rankings remained stable.
+
+### 9.9 Category Sample-Size Imbalance
+
+The 429 categories were not equally represented.
+
+Categories with very few recipes could produce unstable mean ratings and preparation-time estimates.
+
+The minimum five-recipe threshold used for category rating analysis reduced some of this issue but did not fully address statistical uncertainty.
+
+### 9.10 Ingredient Count Was a Simplistic Complexity Measure
+
+Ingredient count did not capture:
+
+- Ingredient quantities.
+- Relative proportions.
+- Preparation methods.
+- Ingredient interactions.
+- Mixing or layering complexity.
+- The order in which ingredients were added.
+
+Two cocktails with the same number of ingredients could have very different compositions and preparation requirements.
+
+### 9.11 Pearson Correlation Was Not Sufficient to Explain Relationships
+
+The correlation analysis focused on linear relationships.
+
+A low correlation did not rule out nonlinear dependencies or relationships that appeared only within particular categories.
+
+We also did not perform causal analysis.
+
+### 9.12 No Predictive or Unsupervised Modelling
+
+This stage was intentionally limited to exploratory data analysis.
+
+We did not implement:
+
+- Rating prediction.
+- Recommendation systems.
+- Nutritional prediction.
+- Recipe classification.
+- Ingredient-based clustering.
+- Cocktail similarity models.
+- Statistical hypothesis testing.
+
+The analysis was intended to establish an understanding of the data before deciding which computational methods would be meaningful.
+
+### 9.13 No Ingredient Interaction or Culinary Compatibility Analysis
+
+Although the dataset contained ingredient lists, the initial EDA did not establish whether ingredient combinations were statistically or chemically meaningful.
+
+We did not investigate:
+
+- Ingredient co-occurrence patterns.
+- Pairwise ingredient associations.
+- Higher-order ingredient combinations.
+- Shared flavour compounds.
+- Chemical flavour compatibility.
+- Statistical laws governing ingredient selection.
+
+These questions required a deeper theoretical and computational framework.
+
+## 10. New Technical Understanding Developed
+
+This initial exercise helped us develop practical skills in data analysis while also exposing the difference between descriptive statistics and deeper scientific investigation.
+
+### 10.1 Data Quality Assessment
+
+We learned that data cleaning should begin with an examination of the underlying structure and missingness patterns rather than immediately removing incomplete records.
+
+We also learned to distinguish structural missingness from ordinary missingness.
+
+### 10.2 Feature Engineering
+
+We gained experience converting raw textual attributes into numerical features suitable for analysis.
+
+Preparation-time parsing and ingredient-count extraction were important examples.
+
+### 10.3 Bayesian-Style Rating Adjustment
+
+We understood why ratings should be interpreted alongside the number of votes supporting them.
+
+The weighted rating introduced us to smoothing and the use of a global mean as a prior estimate.
+
+### 10.4 Heavy-Tailed Distributions
+
+We learned how user-generated recipe data can contain a small number of highly popular records and a large number of less popular records.
+
+This explained why logarithmic axes and median-based summaries were useful.
+
+### 10.5 Correlation and Statistical Interpretation
+
+We gained practical experience with Pearson correlation and learned why a weak correlation should not automatically be interpreted as evidence of complete independence.
+
+### 10.6 Ingredient Entity Resolution
+
+We recognised that raw text strings were not sufficient for reliable ingredient-level analysis.
+
+A more rigorous approach required ingredient canonicalisation, alias mapping and separation of quantities from ingredient identities.
+
+### 10.7 Descriptive EDA vs. Computational Gastronomy
+
+Perhaps the most important conceptual learning was that understanding the distribution of recipe attributes is not the same as understanding the principles governing culinary composition.
+
+We could describe which ingredients occurred frequently, which recipes received high ratings and how preparation time varied.
+
+However, these analyses alone could not explain why particular ingredients were combined, how culinary design was structured or whether recipe composition followed general statistical principles.
+
+This distinction became particularly important in the subsequent research discussion with our professor.
+
+## 11. Discussion with Professor and Change in Research Direction
+
+After completing the initial CocktailDB EDA and reviewing the generated report, we discussed the observations and limitations with Professor Ganesh Bagler.
+
+The initial analysis had helped us understand the dataset and identify its basic statistical characteristics.
+
+However, the analysis was still largely descriptive.
+
+We had examined individual attributes such as ratings, votes, preparation time, categories and ingredient counts, but we had not investigated the deeper statistical structure governing how ingredients were selected and combined in culinary recipes.
+
+The professor therefore asked us to go deeper into the research literature and specifically refer to the paper:
+
+**"Universal Statistical Law Governing Culinary Design."**
+
+This direction was important because it shifted our attention from simply describing recipe data towards understanding whether culinary composition follows general statistical principles.
+
+The next objective was no longer limited to asking:
+
+- Which ingredients occur most frequently?
+- Which categories receive higher ratings?
+- How long do recipes take to prepare?
+- How many ingredients does a recipe contain?
+
+Instead, we needed to investigate more fundamental questions:
+
+- Are there general statistical patterns governing the selection of ingredients?
+- Does the composition of recipes follow recurring quantitative relationships?
+- Can ingredient combinations be understood through statistical structure rather than individual frequency counts?
+- Are there patterns that remain meaningful across different recipes and culinary contexts?
+- How can the dataset be analysed in a way that connects directly to the scientific questions raised in the paper?
+
+The professor's feedback made it clear that we needed to connect our computational analysis with the underlying research question rather than stop at descriptive visualisation.
+
+## 12. Subsequent Paper Study: Universal Statistical Law Governing Culinary Design
+
+Following the professor's recommendation, we studied *Universal Statistical Law Governing Culinary Design*.
+
+The purpose of reading the paper was to understand the theoretical and statistical perspective on culinary composition and identify how its research questions could guide a more meaningful analysis of recipe data.
+
+This represented a transition from exploratory data inspection towards research-driven analysis.
+
+We approached the paper with the following objectives:
+
+1. Understand the central research question and the statistical principles investigated.
+2. Identify the quantities, variables and relationships used to describe culinary design.
+3. Understand how the paper moved beyond simple ingredient-frequency analysis.
+4. Examine the statistical methodology and the evidence used to support its conclusions.
+5. Identify which aspects could be investigated using the available CocktailDB data.
+6. Determine which additional preprocessing and analytical steps would be necessary.
+
+The paper provided the theoretical direction for the next stage of our work.
+
+**Important chronological distinction:** The paper study and the subsequent deeper EDA were undertaken after the initial CocktailDB report described in this log. They should be recorded as the next phase of the research rather than represented as methods already implemented in the initial notebook.
+
+## 13. Direction for the Next Stage of Analysis
+
+Following the initial EDA and the paper study, we identified several areas that required deeper investigation.
+
+### 13.1 More Rigorous Ingredient Processing
+
+We needed to move beyond counting raw ingredient strings.
+
+Potential improvements included:
+
+- Separating quantities from ingredient names.
+- Extracting measurement units.
+- Normalising ingredient names.
+- Resolving aliases.
+- Mapping different textual representations to canonical ingredient identities.
+
+This would make ingredient-frequency and co-occurrence analyses more reliable.
+
+### 13.2 Statistical Analysis of Recipe Composition
+
+We needed to investigate recipe composition through more meaningful statistical representations.
+
+This would involve examining ingredient distributions and relationships in the context of the research questions raised by the paper.
+
+### 13.3 Ingredient Co-occurrence and Relationships
+
+Rather than examining ingredients only as independent frequency counts, we identified the need to investigate how ingredients occurred together.
+
+This could provide a more informative representation of recipe composition.
+
+### 13.4 Re-examination of Dataset Limitations
+
+We also needed to reconsider the consequences of missingness and data imbalance.
+
+In particular:
+
+- Whether incomplete attributes could be analysed through carefully selected subsets.
+- Whether category imbalance affected statistical comparisons.
+- Whether raw ingredient representations distorted observed frequencies.
+- Whether outliers and inconsistent textual fields affected the conclusions.
+
+### 13.5 Research-Driven Visualisation
+
+We recognised that visualisations should be selected according to the research question.
+
+Rather than generating plots simply because a variable was available, the next stage needed to use visualisations to investigate specific statistical relationships and support or challenge the ideas presented in the research paper.
+
+## 14. Overall Outcome and Key Takeaways
+
+The initial CocktailDB exercise established our first practical understanding of the college-provided recipe dataset.
+
+We developed a Python-based exploratory analysis pipeline using Pandas, Matplotlib, Seaborn, regular expressions and Python collections.
+
+We inspected the dataset, examined missingness, cleaned inconsistent columns, engineered additional features and generated eleven major visual analyses.
+
+The analysis revealed several important properties:
+
+- The dataset contained 16,895 recipes after cleaning and 429 unique categories.
+- Recipe ratings were concentrated towards the higher end of the scale.
+- Vote counts followed a highly right-skewed distribution.
+- Preparation times were generally short but contained a long right tail.
+- Ingredient counts showed little linear relationship with ratings.
+- Category distributions were highly imbalanced.
+- Raw ingredient-string counting fragmented the frequencies of ingredients represented with different quantities.
+- Nutritional and cuisine information could not be used reliably in the main analysis because of extensive missingness.
+
+Equally important were the limitations we identified.
+
+We understood that descriptive EDA could reveal patterns in the data but could not independently explain the statistical principles governing culinary composition.
+
+The discussion with Professor Ganesh Bagler consequently became an important turning point.
+
+We were directed to study *Universal Statistical Law Governing Culinary Design* and use the paper to guide a deeper investigation.
+
+This marked the transition from an initial dataset-understanding exercise towards a more research-oriented study of the statistical structure of recipes and culinary design.
+
+The initial EDA therefore served two purposes: it established a technical baseline for working with CocktailDB and helped identify the questions that needed to be investigated in greater depth during the subsequent stage of the research.

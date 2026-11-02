@@ -1,0 +1,337 @@
+# Week 1: In-depth Study of "Spices Form the Basis of Food Pairing in Indian Cuisine"
+
+## 1. Understanding the Research Problem and Motivation
+
+We began by studying the paper *Spices Form the Basis of Food Pairing in Indian Cuisine* by Anupam Jain, Rakhi N K and Ganesh Bagler.
+
+Rather than approaching it as a conventional paper-reading exercise, we tried to understand the actual research problem, the scientific motivation behind it, the assumptions made by the authors, and how the authors translated a culinary phenomenon into a computational problem.
+
+The paper investigates the chemical basis of food pairing and examines whether ingredients sharing a greater number of flavor compounds tend to occur together in recipes.
+
+We first explored the concept of food pairing itself. We learned that the commonly discussed positive food-pairing hypothesis suggests that ingredients sharing more flavor compounds are more likely to taste well together. However, this is not a universal phenomenon. Different cuisines can exhibit different food-pairing patterns.
+
+One of the central findings of this paper was particularly interesting: Indian cuisine exhibits strong negative food pairing. In other words, ingredients sharing a greater number of flavor compounds tend to co-occur less frequently in Indian recipes.
+
+This challenged the simplistic assumption that greater chemical similarity necessarily implies better culinary compatibility.
+
+We also explored the distinction between flavor and taste. Flavor is not determined by taste alone; it involves chemical compounds interacting with olfactory and gustatory receptors, alongside other sensory dimensions such as texture, temperature and appearance. This introduced us to the idea that recipes can be studied through their underlying chemical composition rather than only through their ingredient lists.
+
+## 2. Understanding the Dataset and Data-Curation Pipeline
+
+We next studied how the authors constructed the dataset, which was an important part of understanding the reliability and limitations of the research.
+
+The authors collected Indian recipes from TarlaDalal, covering eight regional sub-cuisines:
+
+- Bengali
+- Gujarati
+- Jain
+- Maharashtrian
+- Mughlai
+- Punjabi
+- Rajasthani
+- South Indian
+
+The original collection contained 3,330 recipes. Through multiple stages of curation, duplicate removal, elimination of ingredients without available flavor profiles, and removal of unsuitable recipe categories and single-ingredient recipes, the authors arrived at a final dataset of 2,543 recipes.
+
+These recipes contained 194 unique ingredients after ingredient aliasing.
+
+We understood that ingredient aliasing was not simply renaming columns. It involved resolving different representations of essentially the same ingredient so that they could be matched consistently with chemical databases. For example, canned pineapple was mapped to pineapple, and Hindi ingredient names were translated into their corresponding English representations.
+
+We also examined how the authors constructed the flavor profiles.
+
+The flavor profiles were obtained using previously published datasets, existing flavor-compound resources and extensive literature searches. The study ultimately considered 1,170 unique flavor compounds.
+
+An important technical detail we came across was the use of Chemical Abstract Service (CAS) numbers as unique identifiers for chemical compounds. This helped maintain consistency in chemical nomenclature when combining information from multiple sources.
+
+This part of the paper helped us understand that computational gastronomy involves substantial data engineering, entity resolution, scientific literature extraction and data standardisation before any meaningful statistical analysis can begin.
+
+We also noticed an important limitation in the data pipeline: the authors could not obtain flavor profiles for every ingredient. Consequently, a considerable portion of the original ingredient information had to be excluded from the final analysis.
+
+## 3. Understanding Flavor Profiles and the Mathematical Formulation
+
+After understanding the dataset, we moved to the central mathematical formulation of the paper.
+
+Each ingredient is represented by a flavor profile, which is essentially a set of chemical compounds associated with that ingredient.
+
+For two ingredients, the authors calculate flavor sharing by finding the intersection of their flavor profiles.
+
+For example, if ingredient A contains compounds {a, b, c, d} and ingredient B contains {b, c, e}, their flavor profiles share two compounds.
+
+The authors extend this pairwise comparison to all ingredient pairs occurring in a recipe.
+
+The average number of shared flavor compounds in a recipe is calculated by summing the overlap between ingredient pairs and normalising by the number of possible pairs.
+
+The resulting recipe-level measure is then averaged across all recipes to obtain the cuisine-level food-pairing measure.
+
+We spent time understanding why the formulation uses pairwise comparisons, why normalisation by the number of possible ingredient pairs is necessary, and how recipe-level measurements are aggregated into a cuisine-level statistic.
+
+This was an important step because it helped us understand that the paper was not directly measuring whether a dish tastes good. Instead, it was measuring the statistical pattern of chemical flavor overlap in ingredient combinations observed in a collection of recipes.
+
+We also understood the distinction between a recipe-level food-pairing score and the aggregate food-pairing characteristics of an entire cuisine.
+
+## 4. Understanding the Experimental Design and Randomised Controls
+
+One of the most important parts of our reading was understanding how the authors established that the observed negative food-pairing pattern was not simply a consequence of random ingredient selection.
+
+The authors constructed different randomised versions of the Indian cuisine and compared their food-pairing statistics with those of the original dataset.
+
+We explored the purpose of each control:
+
+**A. Random control**
+
+Ingredients were selected randomly while preserving the original recipe-size distribution.
+
+This established a baseline for understanding what food pairing would look like if ingredients were combined without the observed culinary selection patterns.
+
+**B. Ingredient-frequency-preserved control**
+
+The probability of selecting an ingredient was based on its actual frequency of occurrence in the cuisine.
+
+This allowed the authors to investigate whether the popularity of individual ingredients itself could explain the observed food-pairing pattern.
+
+**C. Ingredient-category-preserved control**
+
+The category composition of each recipe was maintained, but individual ingredients were randomly selected from the corresponding categories.
+
+This helped investigate whether the composition of ingredient categories, rather than the identity and frequency of particular ingredients, explained the observed pattern.
+
+**D. Category and frequency-preserved control**
+
+Both ingredient-category composition and ingredient occurrence frequencies were preserved.
+
+This allowed the authors to examine the combined influence of these two factors.
+
+An important observation from these experiments was that preserving ingredient frequency reproduced the characteristic negative food-pairing pattern much more closely than preserving ingredient categories alone.
+
+This suggested that ingredient frequency was a dominant factor in determining the observed food-pairing characteristics of Indian cuisine.
+
+We also learned about Z-scores as a way of quantifying how far the observed result deviated from the randomised baseline relative to its variability.
+
+This was particularly interesting because it demonstrated how computational research uses carefully designed control experiments to investigate the contribution of individual factors rather than merely reporting correlations.
+
+## 5. Detailed Understanding of the Figures and Visualisations
+
+We went through the figures individually to understand what each experiment was demonstrating and how the authors built their argument.
+
+### Figure 1: Statistical Properties of Indian Cuisine
+
+The first figure contains two important distributions.
+
+- **Figure 1A — Recipe-size distribution:** Shows the number of ingredients per recipe. The distribution is bounded, with most recipes containing a moderate number of ingredients and an average recipe size of approximately seven ingredients.
+- **Figure 1B — Frequency-rank distribution:** Shows how frequently ingredients are used relative to their rank. A small number of ingredients occur very frequently, while many others occur relatively rarely.
+
+We understood the significance of the highly skewed ingredient-frequency distribution and how it reflects preferential usage of certain ingredients across a cuisine.
+
+The authors also compare the frequency-rank distributions of different regional sub-cuisines, finding similar overall patterns.
+
+An interesting concept here was the scale-free nature of ingredient usage distributions, indicating that ingredient popularity is highly uneven rather than uniformly distributed.
+
+### Figure 2: Quantification of Food Pairing
+
+This figure was particularly important for understanding the mathematical methodology.
+
+It illustrates the complete process:
+
+1. Start with the recipes belonging to a cuisine.
+2. Retrieve the flavor profiles of their ingredients.
+3. Calculate the number of shared flavor compounds between every pair of ingredients.
+4. Aggregate these pairwise overlaps to obtain a recipe-level flavor-sharing measure.
+5. Average the recipe-level measurements to obtain the cuisine-level statistic.
+
+The illustration helped us connect the abstract mathematical formulation to the actual recipe and ingredient data.
+
+We also understood that the method treats ingredients as sets of flavor compounds and calculates intersections between those sets.
+
+### Figure 3: Negative Food Pairing and Randomised Controls
+
+This figure presents one of the central findings of the paper.
+
+The authors compare the average flavor-sharing values of Indian cuisine with those of the different randomised controls.
+
+The original Indian cuisine has substantially lower average flavor sharing than the basic random control.
+
+The figure also examines how the result changes with different recipe-size cut-offs.
+
+An important observation was that the negative food-pairing pattern remains consistent across different recipe sizes, suggesting that the finding is not simply an artefact of recipes containing more or fewer ingredients.
+
+The second part examines the corresponding behaviour across the eight regional sub-cuisines.
+
+### Figure 4: Food Pairing at Ingredient-Pair and Recipe Levels
+
+This figure helped us understand food pairing at two different levels.
+
+- **Figure 4A:** Examines how frequently ingredient pairs occur as the number of shared flavor compounds increases. The frequency of co-occurrence decreases with increasing flavor overlap, following a power-law relationship with an exponent of approximately -1.74.
+- **Figure 4B:** Examines the cumulative distribution of recipe-level average flavor-sharing values and compares the original cuisine with different controls.
+
+We encountered power-law distributions and sigmoid-based fitting in the context of analysing real-world data.
+
+This helped us understand how the authors moved beyond reporting a single average value and investigated the underlying distributions of ingredient pairs and recipes.
+
+### Figure 5: The Copy-Mutate Model of Culinary Evolution
+
+This was one of the more interesting and less conventional concepts we encountered.
+
+The authors used a copy-mutate model to simulate how cuisines and recipes might evolve over time.
+
+The basic idea is that new recipes can emerge by copying existing recipes and introducing modifications, such as replacing one ingredient with another.
+
+The authors compared two variants:
+
+- A model where ingredient fitness values were randomly assigned.
+- A modified model where ingredient fitness was scaled according to ingredient frequency in the actual cuisine.
+
+Both models could reproduce aspects of the ingredient-frequency distribution, but the modified model was also able to reproduce the characteristic negative food-pairing pattern.
+
+This introduced us to the concept of evolutionary models in computational gastronomy and how mechanisms such as copying, mutation and selection can be used to explain the development of culinary traditions.
+
+We also understood that the model's ingredient-fitness parameter could represent several real-world factors, including availability, flavour, nutritional value, cost and versatility.
+
+### Figure 6: Why Spices Matter
+
+This figure was particularly important because it identifies the ingredients and ingredient categories responsible for the negative food-pairing pattern.
+
+The authors performed category-wise randomisation experiments by replacing ingredients with other ingredients from the same category.
+
+The results showed that randomising spices significantly disrupted the negative food-pairing pattern, whereas randomising most other categories did not produce a comparable change.
+
+The authors also examined the contribution of individual ingredients.
+
+Nine of the ten leading ingredients contributing towards negative food pairing were spices.
+
+The figure introduced us to the idea of ingredient contribution and category-level randomisation as tools for identifying which components of a complex system are responsible for an observed statistical property.
+
+We also examined the relationship between ingredient frequency and its contribution to positive or negative food pairing.
+
+## 6. Additional Concepts We Encountered Beyond the Main Results
+
+While studying the methodology and supplementary information, we came across several concepts that are not typically covered in introductory programming or standard machine-learning coursework.
+
+These included:
+
+**1. Computational Gastronomy**
+
+The application of computational methods, statistical analysis, chemical information and network science to understand food, ingredients and culinary practices.
+
+**2. Flavor Networks and Graph Representation**
+
+Ingredients can be represented as nodes, with edges connecting ingredients that share flavor compounds. The number of shared compounds can be represented through edge weights.
+
+This provides a graph-based representation of chemical relationships between ingredients.
+
+**3. Power-Law and Scale-Free Distributions**
+
+We explored how ingredient frequencies and ingredient-pair co-occurrences can follow highly skewed distributions, where a small number of elements account for a disproportionately large share of occurrences.
+
+**4. Null Models and Statistical Controls**
+
+We understood that a randomised control is not necessarily just random data. Different null models preserve selected properties of the original data to investigate the contribution of specific factors.
+
+**5. Ablation and Intra-Category Randomisation**
+
+The authors selectively replace ingredients within categories to investigate the importance of those categories while keeping other properties relatively controlled.
+
+This is conceptually related to ablation experiments, where selected components are modified or removed to understand their contribution to a system.
+
+**6. Evolutionary and Copy-Mutate Models**
+
+We explored how recipe evolution can be represented through duplication, mutation and selection mechanisms.
+
+**7. Data Provenance and Chemical Entity Resolution**
+
+We learned about matching ingredients and compounds across different databases, handling aliases, and using CAS identifiers to maintain consistency.
+
+These concepts helped us appreciate the interdisciplinary nature of computational gastronomy, which combines statistical physics, network science, chemistry, data science and computational modelling.
+
+## 7. Questions, Doubts and Critical Observations
+
+After understanding the paper's methodology and results, we began looking beyond the conclusions and examining the assumptions made by the authors.
+
+We discussed the following areas as potential questions and directions for further investigation.
+
+### A. Does Counting Shared Compounds Fully Represent Flavor Compatibility?
+
+The central formulation uses the number of shared flavor compounds between two ingredients.
+
+We considered whether two shared compounds should always contribute equally to the food-pairing score.
+
+A compound's actual contribution to an ingredient's flavor profile could depend on its concentration, abundance and other chemical characteristics.
+
+This led us to question whether treating every shared compound equally might oversimplify the actual chemical relationship between ingredients.
+
+### B. Should Ingredient Quantities and Proportions Be Considered?
+
+This became our most important observation.
+
+Recipes do not merely specify which ingredients are present; they also specify the quantities in which they are used.
+
+Similarly, flavor compounds are not necessarily present in equal concentrations across different ingredients.
+
+We therefore considered whether the food-pairing formulation could be improved by introducing a weighted parameter for individual flavor molecules, taking their relative quantities or concentrations into account.
+
+For example, two ingredients may share a flavor compound, but the extent to which that compound contributes to the overall flavor profile may differ depending on its abundance.
+
+We felt that a formulation based solely on the number of shared compounds might fail to capture this distinction.
+
+This was the observation that eventually became our proposed research direction.
+
+### C. Does the Model Capture Changes During Cooking?
+
+We also noticed that the paper explicitly acknowledges that flavor compounds can change during cooking.
+
+This is important because the chemical composition of raw ingredients may not remain identical after processes such as heating, frying or boiling.
+
+The same ingredients can therefore exhibit different chemical characteristics depending on their preparation.
+
+We considered whether cooking transformations could be an important factor in developing a more realistic food-pairing model.
+
+### D. How Comprehensive Are the Flavor Databases?
+
+Another limitation was the incomplete availability of flavor profiles.
+
+The authors had to exclude ingredients for which suitable chemical information was unavailable.
+
+This raised questions about the extent to which database coverage and missing chemical information could influence the observed food-pairing patterns.
+
+We also recognised that the availability of chemical information could introduce limitations when extending these methods to other cuisines or culinary datasets.
+
+### E. Does Chemical Overlap Necessarily Translate into Sensory Compatibility?
+
+We distinguished between measuring chemical similarity and establishing actual sensory compatibility.
+
+A higher or lower number of shared compounds is a computationally measurable property, but it does not independently establish whether a combination will taste pleasant to humans.
+
+This made us interested in the relationship between chemical food-pairing models and actual culinary evaluation.
+
+## 8. Discussion and Research Direction Emerging from the Reading
+
+These observations formed the basis of our discussion with the professor.
+
+We presented our understanding of the food-pairing formulation and specifically raised the issue of treating shared flavor compounds without explicitly accounting for their relative quantities.
+
+We discussed whether introducing a weighted parameter for flavor molecules could make the formulation more representative of their actual contributions.
+
+The professor agreed that the absence of quantity considerations was a relevant limitation worth investigating.
+
+We also discussed the challenges of evaluating novel recipes and the possibility of using chemical food-pairing principles as an additional dimension of recipe evaluation.
+
+This discussion eventually led to the opportunity to join the research group and explore the proposed direction further.
+
+The immediate instruction, however, was to first reproduce the findings of relevant research papers, establish a strong understanding of their methodologies, and only then begin modifying existing formulations.
+
+## 9. Key Takeaways from the First Week
+
+By the end of this initial reading exercise, we had developed an understanding of:
+
+- How recipes can be represented through the chemical flavor profiles of their ingredients.
+- How shared flavor compounds can be quantified using set intersections.
+- How recipe-level measurements can be aggregated into cuisine-level food-pairing statistics.
+- Why Indian cuisine exhibits negative rather than positive food pairing.
+- How ingredient frequency influences food-pairing patterns.
+- How randomised controls help isolate the influence of ingredient frequency and category composition.
+- How graph theory can represent relationships between ingredients and flavor compounds.
+- How power-law distributions describe ingredient usage and co-occurrence patterns.
+- How copy-mutate models can simulate culinary evolution.
+- How intra-category randomisation can identify the importance of individual ingredient categories.
+- Why quantity, concentration and cooking transformations could be important considerations for improving existing food-pairing methodologies.
+
+**Overall, this exercise helped us move from understanding food pairing as a culinary concept to understanding it as a computational and chemical modelling problem. More importantly, it encouraged us to critically examine the assumptions behind an existing research methodology rather than limiting ourselves to understanding its reported results.**
