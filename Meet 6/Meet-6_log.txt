@@ -1,0 +1,959 @@
+# Research Log – Exploratory Data Analysis and Hierarchical Clustering of CulinaryDB
+
+**Project:** Data-Driven Investigation of Culinary Patterns in CulinaryDB  
+**Report:** `culinarydb_eda_report.pdf`  
+**Report Generation Script:** `generate_eda_report.py`  
+**Dataset:** CulinaryDB  
+
+**Research Papers:**
+- *Data-Driven Investigations of Culinary Patterns in Traditional Recipes Across the World* – Singh & Bagler (2018).
+- *Hierarchical Clustering of World Cuisines* – Sharma et al. (2020).
+
+**Researchers:** Manthan Kapoor and Satyam Singh  
+**Supervisor:** Dr. Ganesh Bagler
+
+---
+
+## 1. Research Background and Objectives
+
+Following our study of *Data-Driven Investigations of Culinary Patterns in Traditional Recipes Across the World* and *Hierarchical Clustering of World Cuisines*, we undertook a comprehensive exploratory data analysis and computational investigation using the original CulinaryDB dataset.
+
+The objective was to understand the structure of CulinaryDB, examine ingredient distributions across world cuisines, reproduce relevant analytical patterns from the research literature, and implement ingredient-based hierarchical clustering methods to investigate similarities between cuisines.
+
+The work was organised around three major objectives:
+
+1. Conduct descriptive exploratory data analysis of CulinaryDB, examining recipe characteristics, ingredient popularity, category composition, regional distributions and dataset provenance.
+2. Implement frequent ingredient-pattern-based hierarchical clustering and authenticity-based clustering to investigate relationships between cuisines.
+3. Compare different distance metrics, examine the resulting dendrograms and investigate whether the computationally identified relationships were consistent with known geographical and historical culinary connections.
+
+The analysis was conducted directly on CulinaryDB, using the methodologies discussed in the research papers as its academic and methodological foundation.
+
+The work remained exploratory and research-oriented. We did not train a supervised cuisine-classification model.
+
+## 2. Dataset and Data Sources
+
+We used the original **CulinaryDB dataset**, which contains traditional recipes organised across different world cuisines, along with structured ingredient information.
+
+The dataset was represented through the following source tables:
+
+- `01_Recipe_Details.csv`
+- `02_Ingredients.csv`
+- `03_Compound_Ingredients.csv`
+- `04_Recipe-Ingredients_Aliases.csv`
+
+These tables provided recipe metadata, ingredient entities, compound ingredient information and ingredient aliases.
+
+### 2.1 Dataset Overview
+
+According to the 21-page EDA report:
+
+| Parameter | Value |
+|---|---:|
+| Total recipes | 45,772 |
+| Number of cuisines | 26 |
+| Unique ingredient entities | 695 |
+| Global average recipe size | 9.01 ingredients |
+| Most frequent ingredient | Salt |
+| Recipes containing salt | 18,745 |
+| Largest cuisine by recipe count | USA |
+| Recipes in USA cuisine | 16,118 |
+| Unique ingredients in USA | 595 |
+
+The dataset provided sufficient information for ingredient-level analysis and cuisine comparisons.
+
+However, it did not contain the complete cooking-process, utensil and chemical flavour information required to reproduce every component of the original research papers.
+
+## 3. Technical Environment, Libraries and Tools
+
+The analysis was implemented in Python using the CulinaryDB data files.
+
+The final report was generated through a Python script named `generate_eda_report.py`.
+
+### 3.1 Libraries and Tools
+
+**1. Python**
+
+Python was used as the primary programming language for processing the recipe data, performing the analytical computations and generating the report visualisations.
+
+**2. Seaborn (`seaborn`)**
+
+The report explicitly documents the use of Seaborn for visualisation, including:
+
+- Ingredient-category composition heatmaps.
+- Cuisine similarity heatmaps.
+- Clustermaps containing row and column dendrograms.
+
+**3. Matplotlib**
+
+The report contains multiple plotted visualisations, including:
+
+- Ingredient frequency-rank plots.
+- Recipe-size distribution curves.
+- Bar charts.
+- Box plots.
+- Error-bar comparisons.
+- Hierarchical dendrograms.
+- Elbow-method plots.
+- Regional ingredient-frequency charts.
+
+The report does not provide a complete list of Python imports or the exact plotting-library calls used for every figure.
+
+**4. Data Processing and Analysis**
+
+The workflow involved organising recipe and ingredient records, grouping data by cuisine, calculating ingredient frequencies, constructing feature representations and performing statistical computations.
+
+The report does not enumerate every package or specific source-code implementation used for these operations. Therefore, exact package imports should be verified against the original Python script rather than assumed.
+
+### 3.2 Computational Methods
+
+The following algorithms and computational procedures are documented in the report:
+
+- Frequent ingredient-pattern mining.
+- Binary feature-vector construction.
+- Pairwise Euclidean distance calculation.
+- Jaccard distance calculation.
+- Hierarchical Agglomerative Clustering.
+- Average-linkage clustering.
+- Authenticity-score calculation.
+- Pearson correlation analysis.
+- K-Means clustering.
+- Within-Cluster Sum of Squares (WCSS) calculation.
+
+The report documents these methods but does not enumerate every Python package import used to implement them. In particular, the exact frequent-pattern mining algorithm is not identified.
+
+## 4. Overall Code Structure and Implementation Pipeline
+
+The analysis followed a structured workflow progressing from dataset loading and preparation to descriptive analysis, feature construction, distance calculation, clustering and report generation.
+
+The report-generation script was named `generate_eda_report.py`.
+
+The overall implementation can be organised into the following stages:
+
+**Stage 1 – Dataset Loading and Preparation**
+
+- Load the CulinaryDB source tables.
+- Read recipe metadata and ingredient information.
+- Establish the relationships between recipes and ingredient entities.
+- Prepare recipe-level ingredient representations.
+- Organise the records by cuisine.
+
+**Stage 2 – Descriptive EDA**
+
+- Calculate recipe counts by cuisine.
+- Calculate ingredient frequencies.
+- Generate recipe-size statistics.
+- Analyse ingredient-category composition.
+- Compare regional ingredient distributions.
+
+**Stage 3 – Frequent Pattern Mining**
+
+- Identify combinations of ingredients occurring together in recipes.
+- Calculate their support within individual cuisines.
+- Retain patterns satisfying the selected minimum support threshold.
+- Construct a common pattern representation across cuisines.
+
+**Stage 4 – Feature Engineering**
+
+- Convert the frequent patterns into binary feature vectors.
+- Construct cuisine-level ingredient prevalence profiles.
+- Calculate authenticity scores.
+- Select the most distinctive ingredient features.
+
+**Stage 5 – Distance Calculation and Clustering**
+
+- Calculate Euclidean distances between cuisine representations.
+- Calculate Jaccard distances for binary frequent-pattern representations.
+- Apply hierarchical agglomerative clustering.
+- Generate dendrograms.
+- Perform K-Means clustering for comparison.
+- Calculate WCSS for different values of K.
+
+**Stage 6 – Similarity Analysis and Interpretation**
+
+- Calculate correlations between authenticity profiles.
+- Generate a cuisine-similarity heatmap with hierarchical dendrograms.
+- Compare resulting groupings with known geographical and historical relationships.
+- Interpret the differences between clustering methods.
+
+**Stage 7 – Report Generation**
+
+- Generate the visualisations.
+- Record observations and limitations.
+- Organise the results into the final CulinaryDB EDA report.
+
+This workflow combined descriptive analysis with computational experiments to investigate culinary patterns and cuisine relationships.
+
+## 5. Exploratory Data Analysis of CulinaryDB
+
+We began by examining the overall structure of CulinaryDB and understanding how recipe characteristics and ingredient distributions varied across different cuisines.
+
+### 5.1 Ingredient Category Composition Across Cuisines
+
+We examined ingredient categorisation by combining keyword-based matching with the category information available in CulinaryDB.
+
+Each ingredient was mapped to one of 16 broad categories:
+
+1. Vegetable
+2. Fruit
+3. Meat
+4. Seafood
+5. Dairy
+6. Grain/Cereal
+7. Legume
+8. Nut/Seed
+9. Spice
+10. Herb
+11. Oil/Fat
+12. Sauce/Condiment
+13. Sweetener
+14. Beverage
+15. Bakery
+16. Other
+
+For each cuisine, we calculated the proportion of recipes containing at least one ingredient from each category.
+
+The resulting cuisine-by-category matrix was visualised using a Seaborn heatmap with the YlOrRd colormap.
+
+**Observations:**
+
+- Spices, vegetables and sauces/condiments appeared in a substantial proportion of recipes across most cuisines.
+- Meat, seafood, dairy and legume proportions varied considerably between cuisines.
+- Bright horizontal bands indicated categories that were prevalent across many cuisines.
+- Normalising by the number of recipes in each cuisine allowed fairer comparisons despite dataset imbalance.
+
+This analysis helped us understand how broad ingredient categories can provide an initial representation of regional culinary characteristics.
+
+### 5.2 Recipe-Size Distribution
+
+We defined recipe size as the number of distinct ingredient entities in a recipe.
+
+For each cuisine and for the complete dataset, represented as WORLD, we calculated the percentage of recipes containing different numbers of ingredients, considering ingredient counts from 1 to 23.
+
+We plotted recipe-size distributions using smoothed line curves.
+
+**Observations:**
+
+- The global average recipe size was approximately 9.01 ingredients.
+- Most cuisines exhibited a unimodal distribution, where the frequency increased towards a peak and subsequently declined.
+- Thai, African and South East Asian cuisines tended towards larger recipe sizes.
+- The WORLD curve provided an overall representation of recipe-size behaviour across cuisines.
+
+This analysis allowed us to compare recipe complexity across different culinary traditions.
+
+### 5.3 Recipe-Size Box Plots
+
+We created box plots to investigate the variation in recipe sizes across the twelve largest cuisines by recipe count.
+
+These plots allowed us to compare:
+
+- Median recipe size.
+- First and third quartiles.
+- Interquartile range.
+- Outliers.
+
+**Observations:**
+
+- The box plots revealed variation and skewness beyond what averages alone could show.
+- Wider boxes indicated greater variability in recipe complexity within a cuisine.
+- Outliers above the whiskers represented unusually ingredient-heavy recipes.
+- Medians could differ from means when distributions were skewed.
+
+This provided a more complete picture of recipe complexity than relying on mean values alone.
+
+### 5.4 Ingredient Popularity and Frequency-Rank Distribution
+
+We reconstructed the ingredient frequency-rank analysis discussed in Singh and Bagler's research.
+
+For every cuisine and for WORLD:
+
+1. Count the number of recipes containing each ingredient.
+2. Sort ingredients in descending order of frequency.
+3. Assign ranks according to their frequency.
+4. Plot rank against frequency using logarithmic scales.
+
+**Observations:**
+
+- A small set of staple ingredients dominated the highest frequency ranks.
+- Ingredient frequency decreased sharply as rank increased.
+- Many ingredients appeared in relatively few recipes, creating a long tail.
+- The rate of frequency decay varied across cuisines, reflecting differences in ingredient usage.
+
+This reproduced the head-heavy ingredient popularity pattern discussed in the research.
+
+### 5.5 Top Ten Most Frequent Ingredients
+
+We counted the number of distinct recipes containing each ingredient, ensuring that an ingredient contributed at most one count per recipe.
+
+The ten most frequent ingredients were visualised using a horizontal bar chart.
+
+Salt was the most frequent ingredient, appearing in 18,745 recipes.
+
+Other highly frequent ingredients included:
+
+- Pepper
+- Garlic
+- Onion
+- Oil
+- Sugar
+- Butter
+- Water
+- Flour
+
+This provided a global overview of ingredient popularity across CulinaryDB.
+
+### 5.6 Average Recipe Size with Standard Deviation Error Bars
+
+For cuisines containing at least 100 recipes, we calculated:
+
+- Number of recipes.
+- Mean recipe size.
+- Standard deviation of recipe size.
+
+We then plotted the average recipe sizes with standard deviation error bars.
+
+**Observations:**
+
+- Thailand had the highest average recipe size among the major cuisines, at approximately 11.08 ingredients.
+- Longer error bars indicated greater variation in recipe size within a cuisine.
+- Shorter error bars suggested more consistent recipe sizes.
+
+We also distinguished between standard deviation and standard error of the mean. The error bars in this analysis represented standard deviation, not standard error.
+
+### 5.7 Recipe Count by Cuisine
+
+We calculated the number of recipes belonging to each cuisine and visualised the distribution using a bar chart.
+
+**Observations:**
+
+- USA had the largest representation, with 16,118 recipes.
+- Italy and Indian Subcontinent were the next largest cohorts.
+- The dataset was heavily imbalanced across cuisine classes.
+
+We recognised that this imbalance needed to be considered when interpreting ingredient frequencies and comparing cuisines.
+
+No classification model was trained as part of this analysis.
+
+### 5.8 Unique Ingredients by Cuisine
+
+For every cuisine, we counted distinct ingredient entity IDs across its recipes and visualised the top 18 cuisines.
+
+**Observations:**
+
+- USA had the largest ingredient vocabulary, with 595 unique ingredient entities.
+- Larger recipe collections tended to accumulate more unique ingredients in the database.
+- Smaller cuisines could still show substantial ingredient diversity relative to their recipe counts.
+
+We also understood that the number of unique ingredients depends partly on the number of recipes available for a cuisine and therefore should not automatically be interpreted as a measure of real-world culinary diversity.
+
+## 6. Hierarchical Clustering Using Frequent Ingredient Patterns
+
+One of the major computational components of the analysis was the implementation of ingredient-pattern-based hierarchical clustering.
+
+The methodology was inspired by the frequent-pattern-based clustering approach discussed in *Hierarchical Clustering of World Cuisines*.
+
+Since the available CulinaryDB data did not contain the complete set of cooking-process and utensil information used in the original paper, our implementation used ingredient co-occurrence patterns.
+
+### 6.1 Frequent Ingredient Co-occurrence Mining
+
+We represented recipes as collections of ingredients.
+
+Instead of considering each ingredient independently, we investigated combinations of ingredients that occurred together across recipes.
+
+For each cuisine, we mined frequent ingredient co-occurrence patterns.
+
+The minimum support threshold was set to 20%.
+
+The support of an itemset was calculated as:
+
+**Support(X) = Number of recipes containing X / Total number of recipes**
+
+For example, if an ingredient combination appeared in at least 20% of the recipes belonging to a cuisine, it satisfied the selected minimum support threshold.
+
+We retained patterns satisfying this threshold and used them to construct cuisine-level feature representations.
+
+**Implementation note:** The report documents frequent-pattern mining and the 20% support threshold, but does not explicitly identify the exact frequent-pattern algorithm or its Python implementation. We therefore do not attribute the implementation to a specific algorithm such as FP-Growth without checking the source code.
+
+### 6.2 Binary Feature-Vector Construction
+
+After extracting frequent patterns, we represented cuisines using binary feature vectors.
+
+Each feature corresponded to a frequent ingredient pattern.
+
+The representation indicated whether a particular pattern was present or absent in the cuisine's extracted pattern set.
+
+Conceptually:
+
+- 1 represented the presence of a pattern.
+- 0 represented its absence.
+
+This converted categorical recipe-pattern information into a numerical representation that could be used for distance calculations and clustering.
+
+### 6.3 Euclidean Distance-Based Hierarchical Clustering
+
+We first calculated pairwise Euclidean distances between cuisine feature vectors.
+
+The Euclidean distance between two vectors was calculated as:
+
+**D(A,B) = sqrt(sum((A_i - B_i)^2))**
+
+We then applied Hierarchical Agglomerative Clustering using average linkage.
+
+The process worked as follows:
+
+1. Initially, every cuisine was treated as an individual cluster.
+2. Pairwise distances between cuisines were calculated.
+3. The closest clusters were progressively merged.
+4. Average linkage was used to determine the distance between clusters.
+5. The merging process continued until the hierarchical structure was constructed.
+6. The resulting hierarchy was visualised as a dendrogram.
+
+### 6.4 Interpreting the Euclidean Dendrogram
+
+We generated a hierarchical tree using Euclidean distance on frequent ingredient patterns.
+
+The resulting dendrogram provided a visual representation of similarities between cuisines.
+
+**Observations:**
+
+- Cuisines merging at lower linkage heights shared more similar frequent ingredient patterns.
+- European and American cuisines often clustered together, reflecting shared pantry ingredients.
+- Several Asian cuisines, including Japanese, Korean, Chinese and Thai, appeared in related branches.
+- Some relationships reflected ingredient overlap rather than geographical proximity.
+
+This was an ingredient-only adaptation of the original hierarchical-clustering methodology, which also incorporated cooking processes and utensils.
+
+## 7. Jaccard Distance-Based Hierarchical Clustering
+
+We then used the same frequent-pattern representations to construct another hierarchical tree using Jaccard distance.
+
+This allowed us to investigate whether changing the distance metric altered the relationships between cuisines.
+
+### 7.1 Jaccard Distance Calculation
+
+Jaccard distance measures dissimilarity based on the overlap between two sets.
+
+**D_J(A,B) = 1 - |A intersection B| / |A union B|**
+
+Unlike Euclidean distance, Jaccard distance focuses on shared versus total patterns.
+
+It is particularly useful when working with binary presence/absence representations.
+
+### 7.2 Clustering and Dendrogram Generation
+
+We calculated Jaccard distances between the same binary frequent-pattern representations and generated another hierarchical dendrogram.
+
+**Observations:**
+
+- The resulting cluster structure differed from the Euclidean-based tree.
+- Jaccard distance emphasised the overlap of frequent patterns.
+- Geographically distant cuisines could appear together if they shared similar ingredient patterns.
+- Some unexpected groupings could potentially reflect historical culinary influences.
+
+### 7.3 Comparing the Two Distance Metrics
+
+This experiment helped us understand that clustering results are not determined by the dataset alone.
+
+They also depend on:
+
+- How features are represented.
+- Which patterns are selected.
+- The distance metric.
+- The linkage method.
+
+The comparison demonstrated why evaluating more than one similarity metric is important when studying cuisine relationships.
+
+## 8. Authenticity-Based Hierarchical Clustering
+
+We also implemented the second major approach discussed in the hierarchical-clustering paper: authenticity-based cuisine clustering.
+
+Unlike frequent pattern mining, which identifies recurring combinations, this method attempts to identify ingredients that are particularly characteristic of individual cuisines.
+
+### 8.1 Ingredient Prevalence Calculation
+
+We calculated ingredient prevalence for every cuisine.
+
+The prevalence of an ingredient represented how frequently it appeared in the recipes belonging to that cuisine.
+
+We then calculated the corresponding cross-cuisine mean prevalence.
+
+### 8.2 Authenticity Score Calculation
+
+We obtained authenticity profiles by subtracting the cross-cuisine mean prevalence from the prevalence of each ingredient in a particular cuisine.
+
+Conceptually:
+
+**Authenticity(c,i) = Prevalence(c,i) - Mean Prevalence(i)**
+
+Where:
+
+- c represents a cuisine.
+- i represents an ingredient.
+- Prevalence(c,i) represents the prevalence of ingredient i in cuisine c.
+- Mean Prevalence(i) represents its average prevalence across cuisines.
+
+This produced a cuisine-by-ingredient authenticity matrix.
+
+Positive values indicated ingredients that were more prevalent in a cuisine than the cross-cuisine average.
+
+Negative values indicated ingredients that were less prevalent than the cross-cuisine average.
+
+### 8.3 Selecting Distinctive Ingredients
+
+We selected the top 80 most distinctive ingredient features for the clustering analysis.
+
+These features were used to represent each cuisine through its authenticity profile.
+
+### 8.4 Euclidean Clustering on Authenticity Profiles
+
+We calculated Euclidean distances between cuisine authenticity vectors and applied hierarchical clustering.
+
+The resulting dendrogram represented cuisine similarity based on the distinctive ingredient profiles.
+
+**Observations:**
+
+- Authenticity-based clustering captured both over-represented and under-represented ingredients.
+- Indian Subcontinent appeared closer to spice-heavy regions than to some geographically neighbouring cuisines.
+- Canadian and French cuisines appeared relatively close, potentially reflecting historical culinary influences.
+- The resulting hierarchy represented ingredient identity rather than geographical distance alone.
+
+### 8.5 Understanding the Difference Between Frequent Patterns and Authenticity
+
+This was an important conceptual distinction.
+
+**Frequent pattern-based clustering asks:**
+
+Which combinations of ingredients occur repeatedly within a cuisine?
+
+**Authenticity-based clustering asks:**
+
+Which ingredients are unusually prevalent or under-represented in a cuisine compared with their prevalence across cuisines?
+
+The two methods therefore capture different aspects of culinary similarity.
+
+We understood why analysing only common ingredients may fail to capture the distinctive characteristics of a cuisine.
+
+## 9. Cuisine Similarity Heatmap with Hierarchical Dendrograms
+
+After generating authenticity profiles, we calculated similarities between every pair of cuisines.
+
+We calculated Pearson correlations between the authenticity profiles of cuisines.
+
+These correlations were used to construct a cuisine-similarity matrix.
+
+We then generated a Seaborn clustermap containing:
+
+- A cuisine-by-cuisine similarity heatmap.
+- A hierarchical dendrogram along the rows.
+- A hierarchical dendrogram along the columns.
+
+**Observations:**
+
+- Red regions along the diagonal represented groups of cuisines with similar authenticity profiles.
+- Blue off-diagonal regions indicated comparatively contrasting profiles.
+- The dendrograms reordered cuisines to place similar profiles near each other.
+- This provided a combined visual representation of pairwise similarity and hierarchical relationships.
+
+We learned how correlation-based similarity can provide a complementary perspective to distance-based clustering.
+
+We also understood that correlation measures similarity in the relative patterns of profiles and does not necessarily mean that two cuisines have identical ingredient frequencies.
+
+## 10. K-Means Clustering and the Elbow Method
+
+To compare hierarchical clustering with a partition-based clustering method, we also applied K-Means clustering to the frequent-pattern feature vectors.
+
+### 10.1 K-Means Analysis
+
+We applied K-Means for values of K ranging from 1 to 10.
+
+For each value of K, we calculated the Within-Cluster Sum of Squares (WCSS).
+
+WCSS measures the sum of squared distances between observations and their assigned cluster centroids.
+
+### 10.2 Elbow Plot
+
+We plotted WCSS against the number of clusters.
+
+As expected, WCSS decreased as K increased.
+
+However, the resulting curve did not show a clear elbow.
+
+### 10.3 Interpretation
+
+The absence of a sharp elbow made it difficult to identify a single natural number of clusters.
+
+This was consistent with the observation discussed in the original paper.
+
+It also reinforced the usefulness of hierarchical clustering for investigating continuous relationships between cuisines without requiring us to specify the number of clusters beforehand.
+
+## 11. Regional Ingredient Signatures
+
+We also examined the top five ingredients in four selected cuisines to understand how regional ingredient profiles differed from the global ingredient rankings.
+
+### 11.1 Indian Cuisine
+
+The analysis identified prominent ingredients such as:
+
+- Sunflower oil
+- Cayenne
+- Cumin
+- Turmeric
+- Onion
+
+We observed the prominence of spices and aromatics in the Indian Subcontinent subset.
+
+These observations were consistent with the spice-rich ingredient profiles discussed in previous research from the lab.
+
+### 11.2 Italian Cuisine
+
+The top ingredients included:
+
+- Olive oil
+- Garlic
+- Black pepper
+- Salt
+- Tomato
+
+These reflected the prominent use of olive oil, aromatics and other common ingredients in the dataset's Italian recipes.
+
+### 11.3 Japanese Cuisine
+
+The top ingredients included:
+
+- Soy sauce
+- Sugar
+- Water
+- Salt
+- Ginger
+
+The ingredient profile highlighted the importance of condiments and seasoning ingredients.
+
+The report also noted that the Japanese subset contained 580 recipes, meaning its rankings could be more sensitive to individual observations.
+
+### 11.4 Mexican Cuisine
+
+The top ingredients included:
+
+- Onion
+- Garlic
+- Salt
+- Tomato
+- Cilantro
+
+These results illustrated the cuisine-specific ingredient signatures represented in the dataset.
+
+This analysis reinforced the importance of comparing regional ingredient profiles rather than relying only on global ingredient rankings.
+
+## 12. Dataset Provenance and Source Analysis
+
+We also investigated where the recipes in CulinaryDB originated.
+
+Using the Source information in the recipe metadata, we calculated the number of recipes contributed by different repositories.
+
+The report identified major sources including:
+
+- AllRecipes
+- Food Network
+- Epicurious
+- TarlaDalal
+
+We visualised the ten largest sources using a bar chart.
+
+**What we understood:**
+
+- CulinaryDB combines recipes from multiple online repositories.
+- Different repositories may use different ingredient naming conventions and recipe styles.
+- TarlaDalal contributes substantially to the Indian Subcontinent collection.
+- Source imbalance can introduce collection bias into cuisine-level analyses.
+
+This was important because some observed culinary patterns may reflect how recipes were collected and represented rather than the complete characteristics of a real-world cuisine.
+
+## 13. Summary of the Analytical and Computational Work
+
+The analysis combined descriptive EDA with computational methods for representing and clustering cuisines.
+
+The major components were:
+
+**1. Ingredient Category Analysis**
+
+- Mapped ingredients to 16 broad categories.
+- Calculated cuisine-level category proportions.
+- Generated a category composition heatmap.
+
+**2. Recipe-Size Analysis**
+
+- Calculated distinct ingredient counts per recipe.
+- Generated recipe-size distribution curves.
+- Created box plots for the twelve largest cuisines.
+- Calculated mean recipe sizes and standard deviation error bars.
+
+**3. Ingredient Popularity Analysis**
+
+- Calculated recipe-level ingredient frequencies.
+- Generated log-log frequency-rank plots.
+- Identified the ten most frequent ingredients overall.
+
+**4. Cuisine-Level Comparisons**
+
+- Calculated recipe counts by cuisine.
+- Counted unique ingredient entities by cuisine.
+- Compared regional ingredient signatures.
+
+**5. Frequent Ingredient-Pattern-Based Clustering**
+
+- Mined frequent ingredient co-occurrence patterns.
+- Used a minimum support threshold of 20%.
+- Constructed binary feature representations.
+- Generated Euclidean and Jaccard hierarchical dendrograms.
+- Used average linkage for the frequent-pattern hierarchical tree.
+
+**6. Authenticity-Based Clustering**
+
+- Calculated ingredient prevalence by cuisine.
+- Computed authenticity profiles.
+- Selected the top 80 distinctive ingredient features.
+- Generated an authenticity-based hierarchical tree.
+
+**7. Cuisine Similarity Analysis**
+
+- Calculated Pearson correlations between authenticity profiles.
+- Generated a similarity heatmap.
+- Added row and column dendrograms.
+
+**8. K-Means and Elbow Analysis**
+
+- Applied K-Means for K = 1 to 10.
+- Calculated WCSS.
+- Investigated the absence of a clear elbow.
+
+**9. Dataset Provenance**
+
+- Analysed the sources contributing recipes.
+- Considered the possible effect of source imbalance on the resulting observations.
+
+Together, these analyses provided a descriptive understanding of CulinaryDB and computational representations of cuisine similarity.
+
+## 14. Limitations and Analyses That Could Not Be Fully Reproduced
+
+Although the analysis implemented several methods discussed in the research literature, some limitations remained because of the available dataset.
+
+### 14.1 Missing Cooking-Process Information
+
+The CulinaryDB CSV release used in this analysis did not provide the cooking-process information required for the full methodology in Sharma et al.
+
+The original research used ingredients, processes and utensils to study cuisine relationships.
+
+Our implementation used ingredient co-occurrence patterns only.
+
+Therefore, the resulting dendrograms were simplified ingredient-only adaptations rather than exact reproductions of the original feature representation.
+
+### 14.2 Missing Utensil Information
+
+The dataset did not contain the utensil information required for the original multi-feature clustering methodology.
+
+We therefore could not incorporate utensils into the frequent-pattern representations.
+
+### 14.3 Missing Flavour-Molecule Profiles
+
+CulinaryDB did not provide the chemical flavour-compound profiles needed to reproduce the food-pairing calculations from Singh and Bagler.
+
+Consequently, we could not calculate:
+
+- Shared flavour-molecule overlap between ingredients.
+- Recipe-level chemical food-pairing scores.
+- Cuisine-level food-pairing scores.
+- Food-pairing Z-scores using randomised baselines.
+
+These analyses would require external information from FlavorDB.
+
+We deliberately did not substitute ingredient co-occurrence for chemical flavour compatibility.
+
+### 14.4 Missing Geographical Coordinates
+
+The analysis did not include geographical coordinates for the cuisines.
+
+Therefore, we could not construct a separate geographical-distance dendrogram or quantitatively compare the clustering results with geographical distances.
+
+Our interpretation of geographical relationships remained qualitative.
+
+### 14.5 Ingredient-Only Frequent Pattern Representation
+
+Our frequent-pattern clustering used ingredient combinations rather than the complete set of ingredients, processes and utensils used in the original research.
+
+This meant that two cuisines could appear similar because of shared ingredients even if their preparation techniques were substantially different.
+
+### 14.6 Ingredient State and Preparation Differences
+
+The analysis was based on the ingredient entities available in CulinaryDB.
+
+It did not fully represent how an ingredient's culinary role changes depending on whether it is raw, roasted, dried, ground, boiled or otherwise processed.
+
+These distinctions could be important for a more detailed representation of cuisine identity.
+
+### 14.7 Unequal Cuisine Representation
+
+The dataset contained a significant imbalance in recipe counts.
+
+USA alone contributed 16,118 recipes, while several other cuisines had much smaller collections.
+
+This could affect ingredient prevalence estimates, frequent-pattern extraction and the stability of cuisine-specific profiles.
+
+The Japanese subset, for example, contained 580 recipes, making its top ingredient rankings more sensitive to individual recipes.
+
+### 14.8 Sensitivity to Minimum Support
+
+Frequent-pattern extraction depended on a minimum support threshold of 20%.
+
+Changing this threshold could change:
+
+- The number of patterns extracted.
+- The number of features in the binary vectors.
+- The calculated distances between cuisines.
+- The resulting dendrogram structure.
+
+A complete sensitivity analysis across multiple support thresholds was not documented in this report.
+
+### 14.9 Sensitivity to Feature Selection
+
+Authenticity-based clustering used the top 80 distinctive ingredient features.
+
+The resulting clusters could change if a different number of features were selected.
+
+The report did not establish that 80 was a universally optimal feature count.
+
+### 14.10 Distance-Metric Dependence
+
+The Euclidean and Jaccard dendrograms produced different cluster structures.
+
+This demonstrated that cuisine relationships depended partly on the distance metric.
+
+We did not establish one metric as universally correct for measuring culinary similarity.
+
+### 14.11 Limitations of Authenticity Profiles
+
+Authenticity was calculated relative to the cross-cuisine mean prevalence.
+
+This made the results dependent on the cuisines represented in the dataset and their relative recipe distributions.
+
+The resulting score should therefore be interpreted as relative ingredient distinctiveness within this dataset, not as an absolute or universally accepted measure of culinary authenticity.
+
+### 14.12 Limitations of Geographical and Historical Interpretation
+
+Some clustering patterns appeared consistent with geographical or historical relationships.
+
+However, the clustering analysis did not independently prove that geography, migration, trade or colonisation caused those similarities.
+
+Such explanations would require additional historical and geographical evidence.
+
+### 14.13 K-Means Limitations
+
+The elbow plot did not reveal a clear optimal number of clusters.
+
+Although WCSS decreased with increasing K, the curve did not show a sharp turning point.
+
+Therefore, we could not confidently identify a single natural cluster count using the Elbow Method.
+
+### 14.14 Correlation-Based Similarity Limitations
+
+The authenticity heatmap used Pearson correlation between cuisine profiles.
+
+Pearson correlation measures the strength of linear association between profile values. It does not establish that two cuisines have identical ingredient distributions or that they share a direct historical relationship.
+
+### 14.15 No External Ground-Truth Validation
+
+The resulting clusters were interpreted using known geographical and historical culinary relationships.
+
+However, the report did not establish a quantitative external ground-truth benchmark for cuisine similarity.
+
+Consequently, the dendrograms should be treated as exploratory representations rather than definitive classifications of world cuisines.
+
+## 15. Important Dataset and Methodological Considerations
+
+Several considerations affect how the results should be interpreted:
+
+- Recipe counts were substantially imbalanced across cuisines, with the USA contributing 16,118 recipes.
+- Ingredient-frequency measurements represented the number of recipes containing an ingredient, rather than total occurrences or quantities.
+- The frequent-pattern clustering used a minimum support threshold of 20%, which influences the patterns retained.
+- Authenticity-based clustering used the top 80 distinctive ingredient features, making the resulting structure dependent on feature selection.
+- Euclidean and Jaccard distances produced different clustering structures, demonstrating the importance of the selected similarity metric.
+- The analysis used the ingredient information available in CulinaryDB and did not include the complete cooking-process, utensil or flavour-molecule information used in related research.
+- The source distribution of recipes could influence ingredient naming conventions and the representation of individual cuisines.
+
+These considerations are important when interpreting the dendrograms and comparing the results with the original research papers.
+
+## 16. New Concepts and Technical Understanding Developed
+
+This research exercise strengthened our understanding of computational gastronomy, exploratory data analysis and unsupervised learning.
+
+The major concepts we studied and applied included:
+
+**1. Ingredient Category Composition**
+
+We understood how broad ingredient categories can be used to compare culinary characteristics across different cuisines.
+
+**2. Recipe-Size Distribution**
+
+We learned how recipe complexity can be examined using distributions, box plots, quartiles and measures of variability.
+
+**3. Ingredient Frequency-Rank Analysis**
+
+We studied how ingredient popularity follows a head-heavy distribution, with a small number of frequently used ingredients and a long tail of less common ingredients.
+
+**4. Frequent Itemset Mining**
+
+We understood how recurring combinations of ingredients can be extracted from recipe collections using support thresholds.
+
+**5. Binary Feature Representation**
+
+We learned how categorical recipe patterns can be converted into binary vectors suitable for numerical distance calculations.
+
+**6. Hierarchical Agglomerative Clustering**
+
+We implemented hierarchical clustering to construct cuisine dendrograms and represent relationships between cuisines.
+
+**7. Average Linkage**
+
+We understood how the distance between two clusters can be calculated using the average of pairwise distances between their members.
+
+**8. Euclidean vs. Jaccard Distance**
+
+We compared numerical distance and set-overlap-based dissimilarity and observed how they could produce different hierarchical structures.
+
+**9. Dendrogram Interpretation**
+
+We learned how to interpret cluster-merging heights and understand the relative similarities represented by a hierarchical tree.
+
+**10. Authenticity-Based Representation**
+
+We understood how an ingredient's relative prevalence can help distinguish a cuisine, including through both positive and negative deviations from the cross-cuisine average.
+
+**11. Pearson Correlation-Based Similarity**
+
+We learned how correlations between cuisine profiles can be visualised using a similarity heatmap and hierarchical clustermap.
+
+**12. K-Means and WCSS**
+
+We applied K-Means for different cluster counts and used WCSS to examine whether a natural number of clusters could be identified.
+
+**13. Standard Deviation and Error Bars**
+
+We examined variability within cuisines instead of comparing only average recipe sizes.
+
+**14. Dataset Provenance and Collection Bias**
+
+We understood how the sources contributing recipes can influence ingredient naming, representation and the patterns discovered through computational analysis.
+
+## 17. Overall Research Outcome
+
+This research exercise combined descriptive CulinaryDB analysis with computational methods for studying cuisine relationships.
+
+We examined recipe characteristics, ingredient popularity, category composition, regional ingredient distributions and dataset provenance across 26 cuisines.
+
+We also implemented frequent ingredient-pattern-based hierarchical clustering, generating dendrograms using Euclidean and Jaccard distances. In addition, we constructed authenticity-based cuisine representations, generated a cuisine similarity heatmap using Pearson correlation and performed K-Means elbow analysis.
+
+The experiments demonstrated that cuisine similarity can be represented in multiple ways and that the resulting relationships depend on feature selection, representation and distance metrics.
+
+We also identified the limitations imposed by the available CulinaryDB data, particularly the absence of cooking-process information, utensils, flavour-molecule profiles and geographical coordinates.
+
+Most importantly, the work allowed us to move from studying the methodologies presented in published research to implementing ingredient-based computational analyses on real recipe data.
+
+The resulting analysis provided a foundation for further investigation into cuisine relationships, ingredient distinctiveness and the development of more comprehensive representations of culinary similarity.

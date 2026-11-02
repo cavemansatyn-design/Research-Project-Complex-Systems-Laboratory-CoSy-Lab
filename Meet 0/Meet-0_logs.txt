@@ -1,0 +1,78 @@
+# First Research Meeting: Initial Discussions and Research Direction
+
+## 1. Background and Papers Studied
+
+Our initial interest in computational gastronomy developed through studying two research papers:
+
+1. **Analysis of Food Pairing in Regional Cuisines of India** – This paper investigates food-pairing patterns across eight Indian regional cuisines by quantifying the overlap of flavor compounds between ingredients.
+2. **Ratatouille: A Tool for Novel Recipe Generation** – This paper explores the generation of novel recipes using deep learning models, particularly LSTMs and GPT-2, trained on RecipeDB.
+
+While studying these papers, we became interested in understanding the underlying assumptions of existing computational gastronomy methodologies and identifying possible areas for improvement.
+
+## 2. Identifying a Limitation in the Food-Pairing Formulation
+
+During our study of *Analysis of Food Pairing in Regional Cuisines of India*, we identified a potential limitation in the existing food-pairing formulation.
+
+The methodology considers the number of common flavor compounds shared between two ingredients. However, it does not explicitly account for the relative quantities or concentrations of individual flavor molecules contributed by the ingredients.
+
+We felt that merely considering the presence or overlap of flavor molecules might not fully represent their contribution to the overall flavor profile.
+
+For example, two ingredients may share a particular flavor molecule, but the quantity in which that molecule is present in each ingredient could differ considerably.
+
+We therefore proposed investigating an additional weighted parameter for individual flavor molecules, accounting for their relative quantities rather than treating every shared molecule equally.
+
+This became our primary research proposition.
+
+## 3. Discussion on Ratatouille and Recipe Evaluation
+
+We also studied *Ratatouille: A Tool for Novel Recipe Generation* and examined the challenges associated with evaluating machine-generated recipes.
+
+The paper discusses the difficulty of evaluating generated recipes and uses BLEU scores as an evaluation metric. However, textual similarity alone provides only a partial assessment of recipe quality.
+
+This led us to raise questions regarding how generated recipes could be evaluated beyond text-based metrics.
+
+One of the questions we discussed was:
+
+**"Beyond text-overlap metrics such as BLEU, how does the lab validate whether a generated novel recipe is culinarily sound or chemically harmonious using flavor-pairing principles from RecipeDB or FlavorDB?"**
+
+This discussion helped us explore the relationship between recipe generation, ingredient compatibility, and the underlying chemical properties of food.
+
+## 4. Discussion with the Professor and Research Group Opportunity
+
+We discussed our observations and questions with the professor and sought clarification regarding the methodologies used in the papers.
+
+During the discussion, we specifically explained our concern about the absence of quantity considerations in the existing food-pairing formulation.
+
+Following the discussion, the professor agreed that not accounting for the relative quantities of flavor molecules was a relevant limitation worth investigating.
+
+Our interest in the research papers, the questions we raised, and our willingness to explore the identified problem led to an opportunity to join the research group.
+
+We both agreed to pursue the proposed direction of investigating quantity-aware food pairing.
+
+## 5. Initial Research Plan and Assigned Work
+
+Before directly attempting to modify the existing food-pairing formulation, the professor advised us to first reproduce the results of relevant research papers.
+
+The intended progression was:
+
+1. Study the relevant literature related to computational gastronomy, FlavorDB, RecipeDB, and food-pairing methodologies.
+2. Reproduce the experimental results presented in the existing research papers.
+3. Develop a practical understanding of the datasets, methodologies, and computational techniques involved.
+4. Gradually move towards investigating the proposed quantity-aware extension to the food-pairing formulation.
+5. Eventually explore similar computational food-pairing methodologies using CocktailDB, extending the investigation into the domain of cocktails.
+
+## 6. Outcome of the First Meeting
+
+The first meeting established the initial direction of our research.
+
+The key outcomes were:
+
+- Identified a potential limitation in the existing food-pairing formulation concerning the absence of relative flavor-molecule quantities.
+- Proposed introducing a weighted parameter to account for the quantity of individual flavor molecules.
+- Discussed the limitations of text-based evaluation of machine-generated recipes using the Ratatouille paper as a reference.
+- Received the professor's agreement that the quantity-related limitation was worth investigating.
+- Were invited to join the research group based on our interest and engagement with the research.
+- Agreed to begin by studying and reproducing existing research before moving towards the proposed extension.
+
+**Primary Research Direction:** Investigating quantity-aware food-pairing formulations by incorporating the relative contributions of individual flavor molecules into existing computational models.
+

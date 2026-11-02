@@ -1,0 +1,513 @@
+# Research Log — Week 2: Understanding Global Culinary Patterns and the CulinaryDB Dataset
+
+**Paper Studied:** *Data-driven Investigations of Culinary Patterns in Traditional Recipes Across the World*  
+**Authors:** Navjot Singh and Ganesh Bagler  
+**Publication:** 2018 IEEE 34th International Conference on Data Engineering Workshops
+
+## 1. Understanding the Motivation and Research Problem
+
+Following our initial study of food pairing in Indian regional cuisines, we moved on to *Data-driven Investigations of Culinary Patterns in Traditional Recipes Across the World*.
+
+Our objective was to understand how the computational food-pairing framework could be extended beyond a single country's culinary traditions and applied to recipes from different geographical and cultural regions.
+
+We started by understanding the motivation behind the research.
+
+The authors argue that traditional recipes encode the culinary identity of different cultures. Just as languages develop distinct grammatical structures, cuisines develop characteristic ingredient combinations that are passed down through generations.
+
+An interesting analogy introduced in the paper was that:
+
+- Flavor molecules correspond to letters.
+- Ingredients correspond to words.
+- Recipes correspond to sentences.
+- Cuisines represent larger linguistic or cultural systems.
+
+This introduced us to the concept of **culinary grammar**: the underlying organisational principles that govern how ingredients are combined in traditional recipes.
+
+We discussed how computational analysis could help discover these hidden patterns rather than treating cooking as an entirely intuitive or artistic process.
+
+We also revisited the food-pairing hypothesis, which suggests that ingredients sharing more flavor compounds are more likely to occur together. However, the authors point out that previous studies have produced contradictory conclusions depending on the cuisines and datasets examined.
+
+This raised an important question for us: could the differences in reported food-pairing patterns be caused not only by actual culinary differences but also by differences in data quality, ingredient mapping and flavor-profile coverage?
+
+The paper specifically highlights the importance of reliable recipe composition data and accurate mapping between recipe ingredients and their natural sources.
+
+## 2. Understanding CulinaryDB and Its Relationship with FlavorDB
+
+One of the major objectives of our reading was to understand the datasets used in the research, particularly CulinaryDB and FlavorDB.
+
+We explored how these two databases serve different but complementary purposes.
+
+### A. CulinaryDB — Database of World Cuisines
+
+CulinaryDB contains a curated collection of traditional recipes from different regions across the world.
+
+The paper reports:
+
+- 45,772 recipes.
+- 22 geographical and cultural regions.
+- 707 unique ingredients and 21 ingredient categories in the dataset representation.
+- An average of approximately 321 unique ingredients per region.
+
+The recipes were collected from multiple sources:
+
+| Source | Number of recipes |
+|---|---:|
+| AllRecipes | 16,177 |
+| Food Network | 15,917 |
+| Epicurious | 11,069 |
+| TarlaDalal | 2,609 |
+
+The paper also explains how the recipes were grouped into 22 geo-cultural regions.
+
+We examined the regional distribution and noticed that the dataset was not uniformly distributed. For example, the USA had the largest representation, with 16,118 recipes, whereas Korea had only 301 recipes.
+
+This introduced us to an important data-analysis consideration: differences in the number of recipes across regions could influence the statistical reliability and comparability of regional results.
+
+### B. FlavorDB — Database of Flavor Molecules
+
+We then studied FlavorDB, which provides information about flavor molecules present in natural ingredients.
+
+The paper uses FlavorDB to connect the ingredients appearing in recipes with their corresponding chemical flavor profiles.
+
+We understood the relationship as follows:
+
+1. CulinaryDB provides recipes and their ingredient lists.
+2. Each ingredient is mapped to a standardised ingredient entity.
+3. The corresponding flavor profile is retrieved from FlavorDB.
+4. Shared flavor molecules between ingredients are calculated.
+5. These relationships are used to study food-pairing patterns.
+
+This helped us understand that CulinaryDB and FlavorDB are not interchangeable databases.
+
+CulinaryDB describes what ingredients are used together in recipes, whereas FlavorDB provides the chemical information needed to investigate why ingredients might have certain flavor relationships.
+
+We also explored the significance of combining structured recipe information with external chemical databases to create a computational representation of cuisine.
+
+## 3. Understanding Ingredient Aliasing and Database Construction
+
+One of the most technically interesting sections was the methodology used for ingredient aliasing.
+
+We learned that ingredient names extracted from recipes are often inconsistent because of spelling variations, regional terminology, plural forms, synonyms, preparation descriptions and compound ingredients.
+
+For example:
+
+- Whiskey and whisky.
+- Asafoetida and hing.
+- Chili and chile.
+- Bread and bun-related representations.
+
+The authors developed a multi-step text-processing pipeline to standardise ingredient names.
+
+The pipeline included:
+
+1. Converting ingredient descriptions to lowercase.
+2. Removing punctuation and special characters.
+3. Removing stopwords, including culinary-specific stopwords.
+4. Converting plural words into singular forms.
+5. Processing ingredient phrases using NLTK and the `inflect` Python package.
+6. Generating n-grams of up to six words to identify unrecognised ingredients and possible variations.
+7. Performing manual curation of partial matches and unrecognised ingredients.
+
+We found this particularly interesting because ingredient extraction is not simply a matter of splitting a recipe description using commas.
+
+For example, an ingredient description such as "2 jalapeno peppers, roasted and slit" contains quantity and preparation information in addition to the ingredient identity.
+
+The challenge is to identify the actual ingredient without incorrectly treating preparation descriptions as separate ingredients.
+
+We also learned that the authors expanded and modified the original FlavorDB ingredient list to make it more suitable for recipe analysis.
+
+Some important additions included:
+
+- Apple juice.
+- Coconut milk.
+- Coconut oil.
+- Lemon juice.
+- Tomato puree.
+- Tomato paste.
+- Coriander seed.
+- Pork fat.
+- Cured ham.
+
+The paper additionally discusses the treatment of compound ingredients.
+
+For example, mayonnaise can be represented through its constituent ingredients, while certain ready-made spice mixtures and sauces may be treated as compound ingredients.
+
+We discussed why this was necessary: some ingredients frequently occur in recipes as composite entities rather than as individually listed natural ingredients.
+
+Another interesting aspect was that certain compound ingredients were constructed by pooling the flavor molecules of their constituent ingredients.
+
+This raised questions about whether treating a compound ingredient as the union of its constituent flavor profiles fully captures its actual chemical properties, particularly when preparation and processing can alter the resulting composition.
+
+We recognised that this was an important data-modelling assumption.
+
+## 4. Understanding the Mathematical Formulation and Food-Pairing Methodology
+
+We revisited the mathematical formulation from our previous paper and examined how it was used in the global-cuisine study.
+
+The underlying idea remained similar: food pairing is quantified through the overlap of flavor profiles of ingredients occurring together in a recipe.
+
+For ingredients \(i\) and \(j\):
+
+\[
+N_s(i,j)=|F_i\cap F_j|
+\]
+
+For a recipe \(R\) containing \(n\) ingredients:
+
+\[
+N_s^R=
+\frac{2}{n(n-1)}
+\sum_{\substack{i,j\in R\\i\neq j}}
+|F_i\cap F_j|
+\]
+
+The cuisine-level average is:
+
+\[
+\overline{N_s}=
+\frac{1}{N_R}\sum_R N_s^R
+\]
+
+We understood that the paper compares the food-pairing score of an actual cuisine against a randomised counterpart.
+
+The randomised cuisine preserves the recipe-size distribution and the ingredient set of the original cuisine, while changing the ingredient combinations.
+
+The deviation can be represented as:
+
+\[
+\Delta N_s =
+\overline{N_s^{Cuisine}}
+-
+\overline{N_s^{Random}}
+\]
+
+The statistical significance of this deviation is assessed through a Z-score:
+
+\[
+Z=
+\frac{
+\overline{N_s^{Cuisine}}-
+\overline{N_s^{Random}}
+}{
+\sigma_{Random}/\sqrt{N_{Random}}
+}
+\]
+
+Here, \(\sigma_{Random}\) represents the standard deviation of the randomised cuisine's recipe-level measurements, and \(N_{Random}\) is the number of recipes in the randomised dataset.
+
+We discussed how the sign of the Z-score helps distinguish between two broad patterns:
+
+- Positive Z-score: More flavor sharing than expected under random composition, indicating uniform food pairing.
+- Negative Z-score: Less flavor sharing than expected under random composition, indicating contrasting food pairing.
+
+This helped us understand that the study was not merely comparing raw flavor-sharing values across countries. It was examining deviations from cuisine-specific random baselines.
+
+## 5. Understanding the Four Randomised Models
+
+We spent time understanding the different randomised models and why the authors introduced them.
+
+The paper constructs four models to investigate the factors responsible for the observed food-pairing patterns.
+
+**A. Random Cuisine**
+
+Ingredients are selected uniformly from the ingredient set of the respective cuisine.
+
+The recipe-size distribution and ingredient set are preserved.
+
+This provides a baseline for understanding what would happen if ingredients were combined randomly.
+
+**B. Ingredient Frequency Model**
+
+The frequency of occurrence of each ingredient is preserved.
+
+This investigates whether ingredient popularity alone can explain the observed food-pairing pattern.
+
+**C. Ingredient Category Model**
+
+The category composition of each recipe is preserved, but the individual ingredients are randomly selected from their corresponding categories.
+
+This investigates whether the distribution of ingredient categories is responsible for the observed pattern.
+
+**D. Frequency + Category Model**
+
+Both ingredient popularity and category composition are preserved.
+
+This helps examine the combined influence of the two factors.
+
+The authors generated 100,000 recipes for the random control and the corresponding models.
+
+An important finding was that ingredient popularity could reproduce both positive and negative food-pairing patterns to a considerable extent across cuisines.
+
+On the other hand, preserving only the category composition was insufficient to reproduce the original patterns.
+
+We found this interesting because it suggested that the identity and frequency of individual ingredients mattered more than simply maintaining the broad composition of ingredient categories.
+
+## 6. Understanding the Figures and Experimental Results
+
+We went through the figures to understand how the authors established their findings.
+
+### Figure 1 — Overall Data-Driven Framework
+
+The first figure presents the overall pipeline of the study.
+
+It illustrates how recipes from different regions are connected to their ingredient lists and how those ingredients are mapped to flavor molecules through FlavorDB.
+
+This gave us a clear picture of the complete computational gastronomy workflow.
+
+### Figure 2 — Ingredient Category Composition Across Regions
+
+This figure uses a heatmap to show the representation of different ingredient categories across world cuisines.
+
+We examined how different regions exhibit different ingredient preferences.
+
+For example, regions such as France, the British Isles and Scandinavia show a relatively prominent use of dairy products, while the Indian Subcontinent, Africa, the Middle East and the Caribbean show prominent spice usage.
+
+The heatmap helped us understand how categorical representations can reveal regional culinary fingerprints.
+
+### Figure 3 — Recipe Sizes and Ingredient Popularity
+
+This figure presents two important statistical properties.
+
+- **Figure 3(a):** Recipe-size distribution across the different regions.
+- **Figure 3(b):** Frequency of ingredient usage, normalised relative to the most popular ingredient and arranged by rank.
+
+The authors found that recipe sizes follow a bounded, thin-tailed distribution, with an average of approximately nine ingredients per recipe.
+
+We also examined the ingredient popularity curves and understood that a small number of ingredients dominate recipe composition, while the remaining ingredients occur much less frequently.
+
+This introduced us to the idea of studying rank-frequency distributions across multiple datasets to identify common statistical patterns.
+
+### Figure 4 — Food-Pairing Patterns Across 22 Regions
+
+This was one of the most important figures in the paper.
+
+It presents the Z-scores of the 22 regional cuisines compared with their randomised counterparts.
+
+The authors found:
+
+- Sixteen regions exhibited positive food pairing, indicating a tendency towards uniform flavor blending.
+- Six regions exhibited negative food pairing, indicating a tendency towards contrasting flavor blending.
+
+The contrasting regions included Scandinavia, Japan, DACH countries, the British Isles, Korea and Eastern Europe.
+
+The uniform regions included Italy, Africa, the Caribbean, Greece, Spain, USA and the Indian Subcontinent, among others.
+
+We also noted that the results differed from certain earlier studies, which the authors attributed partly to differences in data quality and completeness.
+
+This raised the importance of reproducibility and standardised datasets when comparing scientific findings.
+
+### Figure 5 — Ingredients Contributing to Food Pairing
+
+This figure identifies the top three ingredients contributing to positive and negative food pairing in different cuisines.
+
+We understood that the authors were not only interested in identifying the overall pattern of a cuisine but also in determining which ingredients were responsible for influencing that pattern.
+
+The ingredient contribution was measured through the percentage change in the food-pairing score following the removal of an ingredient from the cuisine.
+
+This introduced us to another way of measuring ingredient importance through counterfactual removal experiments.
+
+## 7. Questions, Doubts and Critical Observations
+
+After understanding the paper, its datasets and the methodology, we began discussing questions that went beyond the direct findings.
+
+The following are the main technical questions and observations we identified while critically examining the research.
+
+### A. How Reliable Is the Ingredient-Mapping Process?
+
+We discussed whether the ingredient-aliasing pipeline could introduce errors.
+
+For example, two ingredients may have similar names but different chemical properties, while two ingredients with very different names may actually refer to the same underlying ingredient.
+
+We considered whether automated string matching and n-gram extraction could introduce false positives or incorrectly merge distinct entities.
+
+We also discussed the importance of manual curation and the possibility of using more sophisticated entity-resolution approaches.
+
+### B. How Does Unequal Regional Representation Affect the Results?
+
+We noticed that the dataset was heavily imbalanced across regions.
+
+The USA had over 16,000 recipes, whereas Korea had only 301.
+
+This led us to question whether the statistical reliability of the results would be comparable across all regions.
+
+We discussed how the number of observations, the diversity of ingredients and the availability of flavor profiles could influence the resulting Z-scores.
+
+We also considered whether repeated sampling or bootstrapping could help assess the stability of the regional results.
+
+### C. Does Ingredient Popularity Dominate the Actual Culinary Relationship?
+
+The paper demonstrates that ingredient frequency is a major contributor to food-pairing patterns.
+
+We discussed whether this meant that some of the observed patterns could arise from the popularity of individual ingredients rather than from a direct preference for particular flavor combinations.
+
+We considered whether additional experiments could separate the effects of ingredient popularity from more specific ingredient-pair relationships.
+
+### D. Could Higher-Order Ingredient Combinations Be Studied?
+
+The authors primarily use pairwise comparisons of ingredients.
+
+We discussed whether considering triples or quadruples of ingredients could reveal more complex relationships that are not captured by pairwise flavor overlap.
+
+For example, three ingredients might work particularly well together even if their individual pairwise relationships do not strongly indicate compatibility.
+
+We recognised that higher-order combinations would significantly increase computational complexity and would require sufficient observations for meaningful statistical analysis.
+
+### E. Can the Model Account for Ingredient Quantities?
+
+This question connected directly to our previous research discussion.
+
+The paper itself identifies the incorporation of ingredient quantities and recipe preparation details as an open research question.
+
+We discussed how two recipes containing the same ingredients could have very different flavor profiles because of differences in their proportions.
+
+We therefore felt that a quantity-aware formulation could provide a more realistic representation of the underlying recipe composition.
+
+### F. What Happens to Flavor Molecules During Cooking?
+
+We also discussed the limitations of treating flavor profiles as fixed properties of raw ingredients.
+
+Cooking methods such as frying, boiling, roasting and fermentation can alter chemical composition.
+
+Some compounds may evaporate, degrade or undergo chemical transformations, while new compounds may be formed.
+
+We considered whether cooking processes and ingredient transformations could eventually be incorporated into computational food-pairing models.
+
+### G. Could Ingredient Contribution Be Studied More Robustly?
+
+The authors measure ingredient contribution through the percentage change in food pairing after removing an ingredient.
+
+We discussed whether this removal-based approach could be influenced by ingredient popularity or by the number of recipes containing that ingredient.
+
+We considered whether complementary approaches, such as frequency-controlled removal experiments or category-wise comparisons, could provide additional insights into ingredient importance.
+
+## 8. An Informal Discussion: Could Latitude and Longitude Be Incorporated?
+
+During the discussion, we also explored some more speculative possibilities.
+
+One of the questions we jokingly raised was whether latitude and longitude could be introduced as additional factors in the food-pairing model.
+
+The underlying thought was that geographical location influences climate, agricultural availability, local ingredients and culinary traditions.
+
+For example, ingredients commonly available in tropical regions may differ considerably from those traditionally used in colder regions.
+
+We wondered whether assigning geographical coordinates to cuisines or ingredients could help explain certain culinary patterns.
+
+The professor explained why directly introducing latitude and longitude into the existing food-pairing formulation would not be straightforward.
+
+The main difficulties were:
+
+1. **Cuisine boundaries are not precise geographical points.** A cuisine represents a broad cultural and geographical region rather than a single coordinate.
+
+2. **Recipes do not necessarily have a unique geographical origin.** Recipes are shared across regions, modified over generations and frequently adapted to local ingredients.
+
+3. **Ingredient availability is not determined by coordinates alone.** Climate, altitude, soil, seasonality, agricultural practices, trade and transportation all influence ingredient availability.
+
+4. **Geographical correlation does not establish causation.** Even if two regions exhibit different food-pairing patterns, latitude or longitude alone cannot explain whether the difference arises from climate, culture, historical influences or other factors.
+
+5. **The dataset does not provide sufficiently precise geospatial information for every recipe.** The regional annotations are primarily geo-cultural classifications, not precise coordinates of where each recipe originated or was prepared.
+
+We therefore understood that geographical information could be an interesting contextual variable, but incorporating raw latitude and longitude directly into the existing chemical food-pairing equation would require a much stronger data foundation and a clear scientific hypothesis.
+
+It was a fun discussion that helped us appreciate the difference between an interesting idea and a scientifically operational research variable.
+
+## 9. Important Research Questions Raised by the Authors
+
+We also paid particular attention to the questions raised by the authors themselves in the conclusion.
+
+These included:
+
+- How robust are food-pairing patterns to changes in recipe data and flavor profiles?
+- What happens when higher-order ingredient combinations, such as triples and quadruples, are considered instead of pairs?
+- How can ingredient quantities and recipe-preparation details be incorporated?
+- How can flavor transformations during cooking be modelled?
+- How can novel recipes be generated that are both palatable and healthier?
+- Is it possible to computationally enumerate or predict the taste of a recipe?
+- How can culinary fingerprints be used to design novel foods and beverages?
+
+We found it particularly interesting that several of these open questions aligned with the observations we had already developed while studying the previous paper.
+
+This reinforced our understanding that computational gastronomy is still an evolving research area with considerable scope for further investigation.
+
+## 10. Assignment from the Professor: Exploratory Data Analysis and Reproduction
+
+Following our discussion and understanding of the paper, the professor assigned us the next stage of work.
+
+We were instructed to perform exploratory data analysis (EDA) on the same underlying data and attempt to reproduce the findings and visualisations presented in the paper.
+
+The objective was to move beyond theoretical understanding and gain practical familiarity with the dataset, its structure and the analytical methods used by the authors.
+
+Our planned work was organised into the following stages.
+
+### A. Understanding the Dataset Structure
+
+- Explore the CulinaryDB dataset and understand its available tables, fields and relationships.
+- Identify the recipe, ingredient, region and category information.
+- Understand how individual recipes are represented.
+- Investigate ingredient naming conventions and the extent of ingredient aliasing.
+- Examine how CulinaryDB ingredients connect with FlavorDB entries.
+- Identify missing values, duplicate records and inconsistencies.
+
+### B. Exploratory Data Analysis
+
+We were expected to investigate the dataset statistically and visually.
+
+Some of the initial analyses included:
+
+- Number of recipes across different regions.
+- Number of unique ingredients across regions.
+- Distribution of recipe sizes.
+- Ingredient frequency and popularity distributions.
+- Ingredient-category composition across cuisines.
+- Distribution of ingredients among different categories.
+- Regional differences in ingredient usage.
+- Availability and distribution of flavor profiles.
+- Coverage of flavor molecules across ingredients.
+- Frequency of ingredient co-occurrence.
+
+### C. Reproducing the Paper's Results
+
+We planned to reproduce the principal analyses and visualisations presented in the paper:
+
+1. Regional ingredient-category composition heatmap (Figure 2).
+2. Recipe-size and ingredient-popularity distributions (Figure 3).
+3. Food-pairing analysis across the 22 regions using Z-scores (Figure 4).
+4. Ingredient contribution analysis (Figure 5).
+
+This would require implementing the original food-pairing formulation and generating the corresponding randomised controls.
+
+### D. Understanding the Randomised Models
+
+We also needed to implement and investigate the four randomised models:
+
+- Random Cuisine.
+- Ingredient Frequency Model.
+- Ingredient Category Model.
+- Frequency + Category Model.
+
+The objective was to understand how each model was constructed and whether the resulting statistical patterns matched those reported in the paper.
+
+### E. Comparing Our Results with the Published Paper
+
+Finally, we intended to compare our reproduced results with the original figures and findings.
+
+We would investigate any discrepancies in the results and determine whether they arose from differences in data availability, preprocessing, ingredient mapping, randomisation procedures or implementation details.
+
+The aim was to establish a reliable baseline before attempting any modifications to the existing food-pairing methodology.
+
+## 11. Outcome of the Second Research Discussion
+
+This meeting expanded our understanding of computational gastronomy from the study of a single regional cuisine to the analysis of global culinary patterns.
+
+The key outcomes were:
+
+- Developed an understanding of CulinaryDB and FlavorDB and how they complement each other.
+- Studied the construction of the global recipe dataset and its regional distribution.
+- Understood ingredient aliasing, compound ingredients and the associated text-processing pipeline.
+- Examined the mathematical formulation of food pairing and its statistical comparison with randomised cuisines.
+- Understood the four randomised models and the role of ingredient popularity in explaining food-pairing patterns.
+- Studied the major figures and experimental findings of the paper.
+- Identified limitations involving regional imbalance, ingredient mapping, incomplete chemical information, higher-order combinations, ingredient quantities and cooking transformations.
+- Discussed speculative extensions involving geographical coordinates and understood the practical and scientific difficulties associated with them.
+- Received the assignment to perform EDA on the same dataset and reproduce the paper's findings and visualisations.
+
+**Immediate Research Objective:** Perform comprehensive exploratory data analysis on CulinaryDB and the associated FlavorDB information, implement the original food-pairing methodology, and reproduce the statistical findings and visualisations reported in the paper before proceeding towards further research extensions.

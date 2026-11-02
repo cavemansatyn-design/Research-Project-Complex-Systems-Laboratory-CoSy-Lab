@@ -1,0 +1,1239 @@
+# Research Log – In-Depth Study of Universal Statistical Laws Governing Culinary Design and Their Application to CocktailDB
+
+**Research Area:** Computational Gastronomy, Statistical Modelling and Culinary Design  
+**Research Paper:** *Universal Statistical Laws Governing Culinary Design*  
+**Research Supervisor:** Dr. Ganesh Bagler  
+**Researcher:** Satyam Singh  
+**Dataset for Planned Application:** CocktailDB (provided by the college/professor)  
+**Previous Work:** Initial Exploratory Data Analysis of CocktailDB
+
+---
+
+## 1. Background and Motivation
+
+After completing the initial exploratory data analysis of CocktailDB, we had developed a basic understanding of the dataset, its structure, ingredient distributions, missing values and available recipe metadata.
+
+However, the initial analysis was primarily descriptive. We had examined individual attributes such as ingredient counts, ratings, votes, preparation time and categories, but had not investigated the deeper statistical principles governing how recipes are composed.
+
+Following the initial presentation and discussion of our EDA with Professor Ganesh Bagler, we were asked to go deeper into the research literature and study the paper:
+
+**"Universal Statistical Laws Governing Culinary Design."**
+
+The paper investigates whether recipes, despite their cultural and geographical diversity, exhibit statistical regularities similar to those observed in natural languages and other complex systems.
+
+The central idea is that recipes can be understood as compositional symbolic systems. Just as words are combined to form sentences under implicit linguistic constraints, ingredients and cooking operations are combined to form recipes under culinary constraints.
+
+This perspective changed the way we approached the dataset.
+
+Instead of simply asking which ingredients were most common, we began investigating whether the frequency of ingredient usage, growth of ingredient diversity and structural complexity of recipes followed general statistical laws.
+
+Our objectives during this stage were:
+
+1. Study the complete research paper and understand its theoretical foundation.
+2. Understand the mathematical formulation of each statistical law.
+3. Interpret the graphs, distributions, scaling relationships and fitted curves presented in the paper.
+4. Understand the computational methodology used to generate the figures.
+5. Study the assumptions and limitations of the proposed statistical framework.
+6. Determine which analyses could be reproduced using CocktailDB.
+7. Identify the differences between a global traditional-recipe corpus and a cocktail-focused dataset.
+8. Prepare a research-oriented implementation plan.
+9. Present our understanding and proposed methodology to the professor.
+10. Discuss our doubts, receive clarification and refine the direction of the subsequent EDA.
+
+This was primarily a literature-study, methodology-understanding and research-planning phase. The analyses described below were studied and planned for application to CocktailDB; they should not be confused with analyses already implemented in the earlier notebook.
+
+---
+
+## 2. Understanding the Central Idea of the Paper
+
+The paper proposes that culinary recipes exhibit statistical properties comparable to those found in language and other complex systems.
+
+A recipe is not merely a list of ingredients. It is a structured composition in which ingredients and cooking operations are selected and combined under constraints.
+
+The authors investigate three principal statistical laws:
+
+1. Zipf's law – ingredient usage frequency.
+2. Heaps' law – growth of ingredient diversity.
+3. Menzerath–Altmann law – relationship between recipe size and average ingredient information content.
+
+The paper additionally investigates:
+
+4. Log-normal distributions in macronutrient concentrations.
+5. Minimal generative models capable of reproducing the observed statistical patterns.
+
+The study uses a global corpus of 118,083 recipes spanning 26 cuisines and 75 countries.
+
+The corpus contains approximately 1.15 million ingredient mentions and 19,019 unique ingredients, together with 270 unique cooking techniques.
+
+The paper's central argument is that culinary creativity, despite being culturally diverse, exhibits measurable statistical regularities that can emerge from relatively simple generative processes.
+
+We understood that these laws describe different aspects of culinary composition:
+
+| Statistical principle | What it investigates |
+|---|---|
+| Zipf's law | How frequently ingredients are used |
+| Heaps' law | How ingredient diversity grows as more recipes are considered |
+| Menzerath–Altmann law | How average ingredient information changes with recipe size |
+| Log-normality | How nutritional quantities are distributed across recipes |
+| Generative models | How simple mechanisms can reproduce the observed patterns |
+
+An important distinction was that the laws are not interchangeable. Each investigates a different dimension of recipe structure.
+
+---
+
+## 3. Detailed Study of Zipf's Law
+
+### 3.1 Conceptual Understanding
+
+Zipf's law describes a heavy-tailed frequency distribution.
+
+When ingredients are ranked according to their frequency of occurrence, a small number of ingredients appear in a very large number of recipes, whereas a large number of ingredients occur relatively rarely.
+
+For example, ingredients such as salt, onion, butter, flour and oil are highly frequent in the global recipe corpus, while many other ingredients appear in only a small number of recipes.
+
+The paper investigates whether ingredient usage follows a power-law-like rank-frequency relationship.
+
+The relationship is expressed as:
+
+f(r) ∝ r^(-α)
+
+Where:
+
+- r is the rank of an ingredient.
+- f(r) is its frequency of occurrence.
+- α is the Zipf exponent.
+
+A larger exponent generally indicates a steeper decline in frequency as rank increases.
+
+### 3.2 Understanding Figure 2(a)
+
+The first important graph in Figure 2(a) is the rank-frequency plot.
+
+The procedure is:
+
+1. Extract all unique ingredients.
+2. Count the number of recipes containing each ingredient.
+3. Sort ingredients in descending order of frequency.
+4. Assign ranks.
+5. Plot rank against frequency.
+6. Use logarithmic scales on both axes.
+7. Examine whether the resulting distribution exhibits an approximately linear region.
+
+A linear relationship in log-log space is consistent with power-law scaling.
+
+The paper reports a global Zipf exponent of approximately 1.53.
+
+The graph demonstrates that a small subset of ingredients dominates usage, while the remaining ingredients form a long tail.
+
+### 3.3 Understanding the Statistical Fitting
+
+We studied the distinction between visually observing a straight line on a log-log graph and statistically establishing a power-law distribution.
+
+A log-log plot alone is not sufficient to prove that a dataset follows a power law.
+
+The paper uses a more rigorous procedure based on the framework of Clauset, Shalizi and Newman.
+
+The methodology involves:
+
+- Fitting a discrete power-law distribution.
+- Estimating the lower frequency cutoff, f_min.
+- Using maximum-likelihood estimation to estimate the exponent.
+- Selecting the cutoff using the Kolmogorov–Smirnov distance.
+- Comparing the power-law model with alternative distributions such as log-normal and exponential.
+- Evaluating goodness of fit and statistical plausibility.
+
+The paper considers fits with p-values greater than 0.1 statistically plausible.
+
+We understood that the exponent alone cannot establish that the distribution genuinely follows a power law. The fitted model must also be evaluated against alternative explanations.
+
+### 3.4 Figure 2(b): Cross-Cuisine Variability
+
+The paper also estimates Zipf exponents separately for individual cuisines.
+
+The reported mean exponent across cuisines is approximately 1.392.
+
+The graph compares the exponents across cuisines using their variability and confidence intervals.
+
+The important observation is that the exponents remain relatively concentrated despite the differences between culinary traditions.
+
+This suggests that ingredient usage may exhibit a common statistical structure even when the actual ingredients differ across cuisines.
+
+### 3.5 Proposed Application to CocktailDB
+
+We planned to reproduce the ingredient rank-frequency analysis using CocktailDB.
+
+The proposed procedure was:
+
+1. Extract ingredients from all cocktail recipes.
+2. Normalise ingredient names.
+3. Remove quantity and measurement information from ingredient identities while retaining them separately.
+4. Resolve aliases and alternative textual representations.
+5. Count the number of recipes containing each ingredient.
+6. Rank ingredients by frequency.
+7. Generate a log-log rank-frequency plot.
+8. Fit a discrete power-law model.
+9. Estimate the exponent and minimum frequency threshold.
+10. Compare the power-law fit with alternative distributions.
+
+We also discussed whether a cocktail-specific ingredient vocabulary might exhibit a different exponent from the global recipe corpus.
+
+This would help investigate whether the statistical organisation of cocktails follows a similar pattern despite the smaller and more specialised ingredient space.
+
+### 3.6 Important Consideration
+
+For this analysis, frequency should ideally represent the number of distinct recipes containing an ingredient rather than the total number of times the ingredient string appears.
+
+For example, if vodka appears three times in the text of one recipe, it should normally contribute one recipe-level occurrence for ingredient-presence frequency.
+
+Quantity and dosage analysis would be treated separately.
+
+---
+
+## 4. Detailed Study of Heaps' Law
+
+### 4.1 Conceptual Understanding
+
+Heaps' law describes how vocabulary size grows as more documents or observations are added to a corpus.
+
+In natural language, vocabulary size increases as more text is read. However, new words are discovered at a decreasing rate because many frequently used words have already appeared.
+
+The paper applies the same idea to recipes.
+
+As more recipes are considered, additional ingredients continue to appear, but the rate at which new ingredients are discovered gradually decreases.
+
+The mathematical relationship is:
+
+V(R) = K × R^β
+
+Where:
+
+- V(R) is the number of unique ingredients observed.
+- R is the number of recipes considered.
+- K is a proportionality constant.
+- β is the Heaps exponent.
+
+A sublinear exponent, generally between zero and one, indicates that ingredient diversity grows more slowly than the number of recipes.
+
+The paper reports a global Heaps exponent of approximately 0.56.
+
+### 4.2 Understanding Figure 2(c)
+
+The graph plots:
+
+- Number of recipes considered on the horizontal axis.
+- Cumulative number of unique ingredients on the vertical axis.
+
+The procedure described in the paper is:
+
+1. Randomly shuffle the recipe corpus.
+2. Begin with a small number of recipes.
+3. Count the number of unique ingredients observed.
+4. Incrementally add more recipes.
+5. Recalculate the cumulative unique ingredient count.
+6. Repeat the experiment across multiple random orderings.
+7. Fit a power-law relationship to the resulting vocabulary-growth curve.
+
+The paper describes 100 independent random shuffles for the incremental sampling experiment.
+
+It fits the relationship using a linear regression on logarithmically transformed values.
+
+### 4.3 Interpretation
+
+At the beginning of the curve, adding recipes can introduce many previously unseen ingredients.
+
+As the corpus grows, commonly used ingredients have already been encountered, and additional recipes increasingly reuse the existing ingredient vocabulary.
+
+Consequently, the number of new ingredients discovered per additional recipe decreases.
+
+This is the concept of diminishing returns in vocabulary growth.
+
+### 4.4 Figure 2(d): Cross-Cuisine Heaps Exponents
+
+The paper also estimates Heaps exponents for individual cuisines.
+
+The reported mean is approximately 0.5441.
+
+The similarity of the exponents across cuisines suggests that sublinear ingredient-diversity growth is not limited to the global corpus.
+
+The paper also discusses a relationship between Zipf and Heaps exponents: cuisines with steeper Zipf distributions tend to have smaller Heaps exponents.
+
+This suggests a relationship between the dominance of frequently reused ingredients and the rate at which new ingredients are introduced.
+
+### 4.5 Proposed Application to CocktailDB
+
+We planned to investigate how the unique ingredient vocabulary grows as additional cocktail recipes are included.
+
+The proposed implementation was:
+
+1. Normalise ingredient identities.
+2. Randomly shuffle the cocktail recipe records.
+3. Start with an initial subset of recipes.
+4. Maintain a cumulative set of unique ingredients.
+5. Increase the number of recipes considered.
+6. Record the number of unique ingredients discovered at each stage.
+7. Repeat the process using multiple random permutations.
+8. Plot unique ingredient count against recipe count.
+9. Fit the Heaps relationship.
+10. Estimate the exponent β.
+
+We also considered comparing different subsets of CocktailDB, such as cocktail categories, provided that the categories contained sufficient observations.
+
+### 4.6 Research Questions
+
+- Does the cocktail ingredient vocabulary grow sublinearly?
+- Does the discovery of new ingredients slow down as more cocktail recipes are added?
+- Is the Heaps exponent stable across different random orderings?
+- Do different cocktail categories exhibit different rates of ingredient diversity growth?
+- Does a small collection of frequently used base ingredients explain a substantial portion of the observed vocabulary structure?
+
+We understood that these questions would require careful treatment of ingredient aliases and recipe duplication before the results could be interpreted.
+
+---
+
+## 5. Detailed Study of the Menzerath–Altmann Law
+
+### 5.1 Conceptual Understanding
+
+The Menzerath–Altmann law investigates the relationship between the size of a structure and the average size or complexity of its constituent units.
+
+The paper applies this concept to recipes.
+
+Here:
+
+- Recipe size is represented by the number of unique ingredients.
+- Ingredient complexity is represented by the information content associated with each ingredient.
+
+The underlying intuition is that a recipe containing many ingredients may rely more heavily on common ingredients, whereas a short recipe may contain relatively distinctive or uncommon ingredients.
+
+This introduces a trade-off between compositional complexity and informational content.
+
+### 5.2 Measuring Ingredient Information Content
+
+The paper defines the information content of an ingredient using its probability of occurrence:
+
+s(i) = -log p(i)
+
+Where:
+
+- p(i) is the empirical probability of the ingredient.
+- s(i) is its information content.
+
+An ingredient appearing frequently has a higher probability and therefore lower information content.
+
+An ingredient appearing rarely has a lower probability and therefore higher information content.
+
+This is based on the information-theoretic principle that rarer events carry more information.
+
+### 5.3 Average Recipe Complexity
+
+For a recipe containing L ingredients, the average ingredient information content is calculated as:
+
+y(L) = (1/L) × Σ s(i)
+
+In other words, the information content of the ingredients is averaged over the recipe.
+
+This gives a numerical representation of how distinctive the ingredient composition is.
+
+### 5.4 Understanding Figure 2(e)
+
+The paper plots recipe size against average ingredient information content.
+
+The observed relationship is non-linear.
+
+Initially, average information content decreases as recipe size increases. This suggests that longer recipes tend to include more common ingredients.
+
+At larger recipe sizes, the relationship changes and the average information content gradually increases.
+
+The paper fits a Menzerath–Altmann-type function:
+
+y(L) = a × L^b × exp(cL)
+
+Where a, b and c are fitted parameters.
+
+The paper reports a global fit with:
+
+- a = 13.16
+- b = -0.26
+- c = -0.019
+- R² = 0.99
+
+The fitted curve exhibits a characteristic minimum around recipe size L ≈ 13.
+
+We studied the significance of this non-monotonic relationship rather than interpreting the law as a simple statement that every larger recipe is less complex.
+
+The main point is that recipe length and average ingredient information content exhibit a structured trade-off.
+
+### 5.5 Figure 2(f): Cuisine-Specific Trends
+
+The paper repeats the analysis for individual cuisines.
+
+The curves exhibit qualitatively similar behaviour, although the location and curvature of their minima differ.
+
+This indicates that the relationship may be shared across different culinary traditions, while its exact parameters vary.
+
+### 5.6 Proposed Application to CocktailDB
+
+We planned to reproduce the same analysis using cocktail recipes.
+
+The proposed methodology was:
+
+1. Identify the unique ingredients present in each cocktail recipe.
+2. Calculate the frequency of each ingredient across the entire dataset.
+3. Convert ingredient frequencies into probabilities.
+4. Calculate information content using negative logarithms.
+5. Calculate the number of unique ingredients in each recipe.
+6. Calculate the average information content of the ingredients within each recipe.
+7. Group recipes by their ingredient count.
+8. Calculate the average complexity for each recipe-size group.
+9. Plot recipe size against average ingredient information content.
+10. Fit the Menzerath–Altmann function.
+11. Evaluate the fitted relationship and compare its behaviour with the paper.
+
+We also considered whether different cocktail categories might exhibit different structural relationships.
+
+### 5.7 Important Cocktail-Specific Consideration
+
+A cocktail with four ingredients is not necessarily less sophisticated than a cocktail with eight ingredients.
+
+For example, a short cocktail recipe may use a distinctive spirit, bitter or liqueur, whereas a longer cocktail may contain several common mixers, garnishes and modifiers.
+
+This made the information-theoretic approach particularly interesting.
+
+However, we recognised that rarity is not equivalent to sensory complexity or preparation difficulty.
+
+The law measures information content derived from ingredient frequency, not subjective taste or actual culinary sophistication.
+
+---
+
+## 6. Study of Macronutrient Log-Normality
+
+The paper also investigates whether nutritional quantities across recipes follow log-normal distributions.
+
+This was an additional statistical component beyond the three primary compositional laws.
+
+### 6.1 Conceptual Understanding
+
+A log-normal distribution occurs when the logarithm of a positive variable follows an approximately normal distribution.
+
+The paper investigates carbohydrates, proteins and total lipids across the global recipe corpus.
+
+It reports that macronutrient concentrations exhibit a log-normal signature.
+
+This suggests that nutritional quantities may be shaped by multiplicative processes rather than purely additive variation.
+
+### 6.2 Understanding Figure 3(a): Mean–Variance Relationship
+
+The graph investigates the relationship between the mean nutrient concentration and the standard deviation of nutrient concentration in logarithmic space.
+
+The authors examine whether the log-space variability remains within a relatively narrow range across macronutrients.
+
+This is used as evidence of a common statistical constraint.
+
+### 6.3 Figure 3(b): Translational Invariance
+
+The paper transforms nutrient values into logarithmic space and centres them around their log means.
+
+The purpose is to investigate whether the distributions collapse onto approximately similar curves after this transformation.
+
+If the distributions become similar after centring, this supports the idea of a shared log-normal structure.
+
+### 6.4 Figure 3(c): Logarithmic Skewness
+
+A log-normal distribution should be approximately symmetric after taking logarithms.
+
+The authors calculate the skewness of log-transformed nutrient values.
+
+Skewness close to zero indicates approximate symmetry.
+
+The paper reports an overall mean log-skewness of approximately -0.24, indicating a slight left-skew in log-space, with differences between individual macronutrients.
+
+### 6.5 Figure 3(d): Goodness-of-Fit Comparison
+
+The authors compare the empirical nutrient distributions against six candidate distributions:
+
+- Log-normal.
+- Weibull.
+- Gamma.
+- Gaussian.
+- Exponential.
+- Uniform.
+
+They use the Kolmogorov–Smirnov distance to compare empirical and fitted cumulative distributions.
+
+The reported mean distances are:
+
+| Distribution | Mean K–S Distance |
+|---|---:|
+| Log-normal | 0.0727 |
+| Weibull | 0.1171 |
+| Gamma | 0.2687 |
+| Gaussian | 0.4520 |
+| Exponential | 0.5383 |
+| Uniform | 0.9662 |
+
+The log-normal distribution provides the best fit among the tested alternatives.
+
+### 6.6 Proposed Application to CocktailDB
+
+We considered whether this analysis could be reproduced using the nutritional information available in CocktailDB.
+
+However, the initial EDA had already revealed that the Nutrients column was approximately 66.3% missing.
+
+Therefore, nutritional analysis would require a separate feasibility assessment.
+
+The proposed steps were:
+
+1. Inspect the available nutrient fields.
+2. Identify which nutrients were recorded consistently.
+3. Examine whether the data represented total quantities or per-serving quantities.
+4. Separate zero values from missing values.
+5. Filter invalid or incomplete observations.
+6. Examine positive nutrient values in logarithmic space.
+7. Fit log-normal distributions.
+8. Compare them against alternative candidate distributions.
+9. Evaluate goodness of fit.
+10. Determine whether the available sample was sufficient for meaningful conclusions.
+
+### 6.7 Important Limitation
+
+The paper uses standardised nutrient data and per-serving values.
+
+CocktailDB may not contain equivalent nutritional information or consistent serving-size measurements.
+
+Therefore, we could not assume that the nutrient analysis would be directly reproducible.
+
+We decided that this part of the paper should be treated as a possible extension rather than a guaranteed component of the CocktailDB implementation.
+
+---
+
+## 7. Study of the Generative Models – Figure 4
+
+After studying the empirical statistical laws, we examined how the paper attempted to explain the emergence of these patterns.
+
+The authors proposed minimal generative models.
+
+The objective was to investigate whether simple mechanisms could reproduce the observed statistical regularities.
+
+Three mechanisms were particularly important.
+
+### 7.1 Preferential Reuse
+
+The first mechanism is based on the idea that ingredients already used frequently are more likely to be selected again.
+
+The probability of selecting an ingredient is related to its historical frequency.
+
+This is a rich-get-richer mechanism.
+
+It provides a possible explanation for why a small number of ingredients become highly dominant while many others remain relatively rare.
+
+In CocktailDB, this could be investigated through the observed ingredient-frequency distribution.
+
+A possible extension would be to construct a simulation in which ingredients are sampled with probabilities proportional to their observed frequencies and examine whether the resulting rank-frequency distribution resembles the empirical one.
+
+### 7.2 Constraint-Driven Sample-Space Reduction
+
+The second mechanism concerns constraints on ingredient selection.
+
+Ingredients are not selected independently from every possible ingredient in existence.
+
+Their selection may depend on:
+
+- Existing ingredients in the recipe.
+- Flavour compatibility.
+- Functional roles.
+- Cultural preferences.
+- Preparation requirements.
+- Availability and accessibility.
+
+Consequently, the set of ingredients that can reasonably be added to a recipe becomes progressively constrained.
+
+This provides a conceptual explanation for why culinary diversity grows sublinearly rather than expanding without limits.
+
+For CocktailDB, this suggested investigating whether ingredient selection was influenced by existing combinations and category-specific patterns.
+
+However, we recognised that a frequency-based analysis alone would not establish the underlying compatibility mechanism.
+
+### 7.3 Evolutionary Modification of Recipes
+
+The third mechanism treats new recipes as modifications of existing recipes.
+
+A recipe may evolve through:
+
+- Adding an ingredient.
+- Removing an ingredient.
+- Substituting an ingredient.
+- Modifying an existing composition.
+
+This resembles how new cultural artefacts and linguistic expressions emerge through modifications of earlier forms.
+
+For cocktails, this could be particularly relevant because many drinks share a common base structure but differ through substitutions, modifiers, proportions or garnishes.
+
+We considered whether recipe similarity and ingredient-substitution patterns could provide a way to explore this idea.
+
+However, this would require reliable recipe identity, ingredient normalisation and potentially quantity-level information.
+
+### 7.4 Important Understanding
+
+The paper's generative models are simplified mechanisms intended to reproduce broad statistical patterns.
+
+They do not prove that every recipe was historically generated through exactly those processes.
+
+We understood that reproducing a statistical distribution is different from uniquely identifying the real-world mechanism responsible for it.
+
+---
+
+## 8. Detailed Study of the Paper's Methodology
+
+We examined the methodology section to understand how the figures were generated computationally.
+
+This was important because we wanted to move beyond reproducing the appearance of the graphs and understand the data-processing steps behind them.
+
+### 8.1 Recipe Corpus and Annotation
+
+The paper uses a global corpus of 118,083 recipes.
+
+The recipes were collected from multiple online sources and processed to remove duplicates and structural irregularities.
+
+A named entity recognition pipeline was used to extract structured culinary information.
+
+The extracted entities included:
+
+- Ingredient names.
+- Quantities.
+- Measurement units.
+- Preprocessing operations.
+- Cooking techniques.
+- Utensils and equipment.
+
+The authors used a fine-tuned spaCy-transformer NER model.
+
+The reported macro-F1 scores were approximately 95.9%, 96.04% and 95.71% across the manually annotated, augmented and machine-annotated datasets, respectively.
+
+This was particularly relevant to our research because it demonstrated how unstructured recipe text could be converted into a structured representation.
+
+### 8.2 Ingredient Frequency Calculation
+
+For Zipf's law, ingredient frequency was defined as the number of recipes containing a particular ingredient.
+
+The resulting frequency distribution was ranked and fitted using a discrete power-law model.
+
+The paper uses maximum-likelihood estimation and the Kolmogorov–Smirnov framework for selecting the minimum frequency threshold and assessing the fit.
+
+### 8.3 Vocabulary Growth Calculation
+
+For Heaps' law, recipes were randomly shuffled and added incrementally.
+
+At each stage, the cumulative number of unique ingredients was recorded.
+
+The resulting vocabulary-growth curve was fitted using a power-law relationship on logarithmically transformed data.
+
+### 8.4 Information-Theoretic Complexity
+
+For the Menzerath–Altmann analysis, ingredient frequency was converted into information content.
+
+The information content of each ingredient was calculated from its empirical probability.
+
+The average information content was then calculated for recipes grouped by their number of ingredients.
+
+The resulting relationship was fitted using nonlinear least-squares regression.
+
+### 8.5 Nutritional Distribution Analysis
+
+For the nutrient analysis, positive nutrient values were log-transformed.
+
+The authors examined distribution shape, skewness, variability and goodness of fit against several candidate distributions.
+
+### 8.6 Why This Methodological Study Was Important
+
+We understood that the quality of the final statistical results depended heavily on preprocessing.
+
+Incorrect ingredient normalisation could change frequency counts, vocabulary size, estimated information content and consequently the fitted statistical laws.
+
+Therefore, data preparation was not merely a preliminary cleaning step. It was an essential part of the scientific methodology.
+
+---
+
+## 9. Limitations and Critical Evaluation of the Paper
+
+Alongside understanding the findings, we studied the limitations acknowledged by the authors and considered additional limitations relevant to applying the methodology to CocktailDB.
+
+### 9.1 Online Corpus and Reporting Bias
+
+The global corpus was assembled from online recipe repositories.
+
+Recipes available online may not represent all recipes that exist within a culinary tradition.
+
+Some cuisines, sources or types of dishes may be more heavily represented than others.
+
+Therefore, the observed statistical laws are based on the collected corpus and should not automatically be interpreted as perfectly unbiased representations of all global culinary practices.
+
+### 9.2 Uneven Representation Across Cuisines
+
+The paper includes 26 cuisines, but their recipe counts are not necessarily equal.
+
+Differences in data availability and source representation can affect cuisine-specific estimates.
+
+This means that comparisons between cuisines should consider sample size and uncertainty.
+
+### 9.3 Imperfect Cuisine Labels
+
+Cuisine labels are obtained through metadata and manual curation.
+
+However, culinary identities are complex and can evolve over time.
+
+A recipe may belong to multiple culinary traditions or be influenced by several regional practices.
+
+Consequently, cuisine labels are useful analytical categories but imperfect representations of cultural identity.
+
+### 9.4 Ingredient Normalisation and Annotation Bias
+
+The statistical analysis depends heavily on correctly identifying and standardising ingredients.
+
+Different textual descriptions may represent the same ingredient, while seemingly similar descriptions may refer to different ingredient states or preparations.
+
+Errors in named entity recognition and ingredient normalisation can affect:
+
+- Ingredient frequencies.
+- Rank assignments.
+- Vocabulary size.
+- Information-content calculations.
+- Ingredient diversity estimates.
+
+This was particularly relevant to CocktailDB, where quantities, units, brands and ingredient descriptions may be embedded in the same textual string.
+
+### 9.5 Statistical Regularities Do Not Uniquely Identify Their Mechanisms
+
+One of the most important limitations acknowledged in the paper is that empirical regularities do not uniquely establish the underlying generative mechanism.
+
+For example, observing a Zipf-like distribution does not prove that preferential reuse is the only mechanism responsible.
+
+Multiple mechanisms can potentially generate similar statistical distributions.
+
+Therefore, generative models should be interpreted as plausible explanations rather than definitive reconstructions of culinary evolution.
+
+### 9.6 Limitations of Power-Law Interpretation
+
+A straight-looking log-log plot does not establish a true power law.
+
+Heavy-tailed distributions can also resemble log-normal or other alternative distributions.
+
+Therefore, rigorous fitting, cutoff selection, goodness-of-fit assessment and comparison with alternatives are necessary.
+
+### 9.7 Limitations of the Heaps' Law Experiment
+
+The vocabulary-growth curve depends on the ordering and sampling of recipes.
+
+Different random orderings may produce different intermediate trajectories.
+
+Repeated shuffling and uncertainty estimation are therefore important.
+
+We also recognised that recipe duplication and inconsistent ingredient identities could artificially reduce or inflate the observed vocabulary growth.
+
+### 9.8 Limitations of the Menzerath–Altmann Interpretation
+
+The law uses ingredient rarity as a measure of information content.
+
+However, rarity is not the same as:
+
+- Sensory complexity.
+- Chemical complexity.
+- Preparation difficulty.
+- Ingredient importance.
+- Culinary sophistication.
+
+A rare ingredient has higher information content under the mathematical definition, but this does not mean that it is necessarily more complex in a culinary or chemical sense.
+
+The fitted relationship also needs to be evaluated across sufficiently populated recipe-size groups.
+
+### 9.9 Nutritional Data Limitations
+
+The nutrient analysis depends on standardised nutrient quantities and per-serving information.
+
+Missing data, differences in serving sizes and inconsistent nutritional reporting can affect distributional comparisons.
+
+Zero values also require careful treatment because logarithms are undefined for zero.
+
+### 9.10 Generative Model Simplification
+
+The proposed generative models are intentionally minimal.
+
+Real culinary systems are influenced by many factors, including:
+
+- Culture.
+- Geography.
+- Ingredient availability.
+- Climate.
+- Economics.
+- Taste perception.
+- Historical development.
+- Cooking practices.
+
+The models capture selected mechanisms but do not represent every factor influencing culinary design.
+
+### 9.11 Additional Limitations We Identified for CocktailDB
+
+Beyond the limitations discussed in the paper, we identified several challenges that would arise when adapting the methodology to cocktail recipes.
+
+**A. Smaller and more specialised dataset**
+
+The global corpus contains 118,083 recipes across 26 cuisines.
+
+Our CocktailDB dataset is smaller and focuses on cocktails.
+
+The resulting ingredient vocabulary and frequency distribution may therefore have different statistical characteristics.
+
+We should not assume that the same exponents will be obtained.
+
+**B. Ingredient quantities are particularly important**
+
+In cocktails, proportions can strongly influence the identity and balance of a drink.
+
+For example, the presence of vodka and citrus juice alone does not fully describe the composition of a cocktail.
+
+The relative quantities of the ingredients matter.
+
+A presence/absence representation would be useful for reproducing the paper's basic ingredient-frequency laws, but it would not capture the full recipe composition.
+
+**C. Brands and ingredient aliases**
+
+The same spirit may be represented using different names, brands or descriptions.
+
+Without normalisation, the same underlying ingredient could be counted as multiple entities.
+
+**D. Garnishes and optional ingredients**
+
+Garnishes may appear in ingredient lists even though their role differs from that of the principal liquid components.
+
+We therefore considered whether garnishes should be treated separately in more detailed analysis.
+
+**E. Ice and water**
+
+Ice may appear frequently in cocktail recipes and may have a different functional role from spirits, liqueurs or flavouring ingredients.
+
+We considered whether functional ingredient categories would be useful for additional analysis.
+
+**F. Recipe variants and duplication**
+
+Different versions of the same cocktail may appear under slightly different names or with small ingredient modifications.
+
+Such records could affect frequency counts and vocabulary-growth measurements.
+
+**G. Incomplete quantities and serving information**
+
+Some recipes may not contain complete quantities or standardised serving sizes.
+
+This would restrict quantity-based and nutrient-based analysis.
+
+**H. Limited applicability of cooking techniques**
+
+Cocktail recipes generally involve different preparation operations from traditional cooked dishes.
+
+Some operations, such as shaking, stirring, muddling, blending, layering and garnishing, may be more relevant than conventional cooking techniques.
+
+The procedural dimension of the paper would therefore require adaptation.
+
+---
+
+## 10. Heuristic Research Doubts and Questions Prepared for Discussion
+
+While studying the paper, we developed several questions concerning the mathematical interpretation, implementation and applicability of the proposed laws.
+
+These questions were useful because they helped us move from understanding the graphs conceptually to thinking about how we could reproduce them on our own dataset.
+
+The following are plausible research questions and the corresponding technical clarifications that guided our implementation planning. They are reconstructed as study notes, not a verbatim transcript of the professor's responses.
+
+### 10.1 Questions About Zipf's Law
+
+**Question 1: If we plot ingredient rank against frequency and obtain a straight line on a log-log graph, can we conclude that CocktailDB follows Zipf's law?**
+
+Clarification:
+
+No. A straight-looking line is only an initial indication of power-law-like behaviour.
+
+We need to estimate the exponent statistically, select an appropriate minimum frequency threshold, evaluate goodness of fit and compare alternative distributions.
+
+**Question 2: Should ingredient frequency be counted by total occurrences or by the number of recipes containing an ingredient?**
+
+Clarification:
+
+For reproducing the paper's recipe-level ingredient-frequency analysis, frequency should be calculated as the number of recipes containing an ingredient.
+
+Repeated textual mentions within the same recipe should not automatically be treated as separate recipe occurrences.
+
+Quantity-level analysis can be performed separately.
+
+**Question 3: What happens if the same ingredient appears under different names?**
+
+Clarification:
+
+The ingredient vocabulary must be normalised before calculating frequencies.
+
+Otherwise, one ingredient may be split into several artificial entities, distorting both the rank-frequency curve and the estimated exponent.
+
+**Question 4: Can we directly compare our Zipf exponent with the paper's global exponent of approximately 1.53?**
+
+Clarification:
+
+We can compare the results as a reference, but we should not expect identical values.
+
+The paper uses a large and diverse global recipe corpus, whereas CocktailDB is a smaller, specialised collection.
+
+Dataset size, ingredient definitions, source composition and the fitted frequency range can all affect the estimate.
+
+**Question 5: What if our dataset does not exhibit a convincing power-law fit?**
+
+Clarification:
+
+We should report the result honestly rather than forcing a power-law model.
+
+Alternative distributions should be investigated, and the lack of strong evidence for Zipf-like behaviour would itself be an informative finding.
+
+### 10.2 Questions About Heaps' Law
+
+**Question 6: Why do we need to shuffle recipes before calculating vocabulary growth?**
+
+Clarification:
+
+The purpose is to avoid allowing the original ordering of recipes to determine the vocabulary-growth curve.
+
+Repeated random permutations help assess whether the observed sublinear growth is robust to ordering.
+
+**Question 7: If the dataset contains duplicate recipes, how will that affect Heaps' law?**
+
+Clarification:
+
+Duplicate recipes can increase the number of observations without introducing new ingredients.
+
+This can influence the estimated vocabulary-growth curve.
+
+We should therefore investigate duplicate records and consider how recipe variants should be treated before fitting the law.
+
+**Question 8: Can we calculate Heaps' law separately for cocktail categories?**
+
+Clarification:
+
+Yes, provided the categories contain sufficient observations.
+
+However, comparisons should account for differences in sample size and ingredient diversity.
+
+A category with very few recipes may produce an unstable estimate.
+
+**Question 9: Does a smaller Heaps exponent necessarily mean that a cocktail category is less diverse?**
+
+Clarification:
+
+Not necessarily.
+
+The exponent describes the rate at which new ingredients are discovered as additional recipes are included.
+
+It should be interpreted together with vocabulary size, corpus size and the overall sampling process.
+
+### 10.3 Questions About Menzerath–Altmann Law
+
+**Question 10: Why does the paper use ingredient rarity as a measure of complexity?**
+
+Clarification:
+
+The paper uses information theory.
+
+An ingredient that appears rarely has lower empirical probability and therefore higher information content under the negative-log-probability definition.
+
+This is a mathematical measure of information, not a direct measure of sensory or culinary complexity.
+
+**Question 11: If a cocktail contains more ingredients, should its average ingredient information always decrease?**
+
+Clarification:
+
+No.
+
+The paper reports a non-linear relationship, including an initial decrease followed by an increase at larger recipe sizes.
+
+We need to investigate the fitted curve rather than assume a simple monotonic relationship.
+
+**Question 12: How should ingredients with zero observed frequency be handled?**
+
+Clarification:
+
+An ingredient not observed in the reference corpus has no defined empirical probability within that corpus.
+
+The information-content calculation must use a consistent vocabulary and frequency reference.
+
+We should not arbitrarily assign probabilities to unseen ingredients without defining a smoothing strategy.
+
+**Question 13: Should quantities influence the Menzerath–Altmann analysis?**
+
+Clarification:
+
+The paper defines recipe size using the number of unique ingredients.
+
+A first reproduction should follow this definition.
+
+Quantity-aware or weighted complexity could be explored as a separate extension, but it should not be mixed with the original method without clearly defining the new measure.
+
+### 10.4 Questions About Nutritional Distributions
+
+**Question 14: Can we reproduce the log-normal nutrient analysis using the available CocktailDB data?**
+
+Clarification:
+
+Only if the dataset has sufficient reliable nutritional information and consistent serving-size measurements.
+
+The initial EDA revealed substantial missingness in the Nutrients field, so this analysis needs a separate feasibility check.
+
+**Question 15: What should we do with zero nutrient values before applying logarithms?**
+
+Clarification:
+
+Logarithms are defined only for positive values.
+
+Zero and missing values must be handled separately according to their meaning rather than being treated as interchangeable.
+
+### 10.5 Questions About the Generative Models
+
+**Question 16: If preferential reuse reproduces a Zipf-like distribution, does that prove ingredients are selected through preferential attachment in reality?**
+
+Clarification:
+
+No.
+
+A generative model demonstrates that a proposed mechanism can reproduce an observed pattern under its assumptions.
+
+It does not uniquely establish the actual historical or behavioural mechanism.
+
+**Question 17: How can we investigate constraint-driven ingredient selection using CocktailDB?**
+
+Clarification:
+
+A possible first step is to examine ingredient co-occurrence and conditional frequencies.
+
+For example, we can investigate whether the probability of selecting a particular ingredient changes when another ingredient is already present.
+
+However, co-occurrence alone does not prove flavour compatibility or causation.
+
+**Question 18: Can recipe modifications be studied through cocktail variants?**
+
+Clarification:
+
+Potentially.
+
+We would need to identify related recipes and examine additions, removals and substitutions.
+
+Reliable recipe matching and ingredient normalisation would be prerequisites.
+
+---
+
+## 11. Proposed Application Framework for CocktailDB
+
+After studying the paper and its methodology, we organised the potential CocktailDB implementation into a sequence of analytical stages.
+
+### Stage 1: Dataset Audit and Ingredient Standardisation
+
+Before reproducing any statistical law, we needed to establish a reliable ingredient representation.
+
+Proposed tasks:
+
+- Inspect the ingredient schema.
+- Identify duplicate recipes and possible variants.
+- Extract ingredient names.
+- Separate quantities and measurement units.
+- Normalise case, punctuation and textual variations.
+- Resolve aliases where possible.
+- Preserve ingredient states and preparation descriptions separately where useful.
+- Create a canonical ingredient vocabulary.
+
+This was essential because all three compositional laws depend on the quality of ingredient representation.
+
+### Stage 2: Zipf Analysis
+
+Proposed tasks:
+
+- Calculate recipe-level ingredient frequencies.
+- Rank ingredients.
+- Generate log-log rank-frequency plots.
+- Fit a discrete power-law distribution.
+- Estimate the exponent and minimum frequency threshold.
+- Evaluate goodness of fit.
+- Compare against alternative distributions.
+- Examine whether the pattern is robust across suitable cocktail categories.
+
+### Stage 3: Heaps Analysis
+
+Proposed tasks:
+
+- Randomly shuffle the recipes.
+- Incrementally add recipes.
+- Calculate cumulative unique ingredient counts.
+- Repeat using multiple random permutations.
+- Plot vocabulary growth.
+- Fit the Heaps relationship.
+- Estimate the exponent.
+- Examine the stability of the exponent.
+
+### Stage 4: Menzerath–Altmann Analysis
+
+Proposed tasks:
+
+- Calculate ingredient probabilities.
+- Convert probabilities into information content.
+- Calculate recipe sizes.
+- Calculate average ingredient information per recipe.
+- Group recipes by recipe size.
+- Fit the Menzerath–Altmann function.
+- Examine the curve and its minimum.
+- Evaluate whether sufficient observations exist across recipe-size groups.
+
+### Stage 5: Nutritional Analysis Feasibility
+
+Proposed tasks:
+
+- Inspect nutrient availability.
+- Check serving-size consistency.
+- Quantify missingness.
+- Identify positive and zero nutrient values.
+- Evaluate whether log-normal fitting is feasible.
+- Compare candidate distributions if the sample permits.
+
+### Stage 6: Further Exploration of Generative Mechanisms
+
+Potential extensions:
+
+- Ingredient co-occurrence analysis.
+- Conditional ingredient probabilities.
+- Common cocktail-base combinations.
+- Ingredient substitutions.
+- Recipe similarity.
+- Category-specific ingredient constraints.
+- Simple preferential-reuse simulations.
+- Comparison between empirical and simulated distributions.
+
+These extensions would be treated separately from reproducing the original statistical laws.
+
+---
+
+## 12. Research Presentation to Professor
+
+After studying the paper, its figures, mathematical formulations, computational methodology and limitations, we organised our understanding into a research-oriented presentation.
+
+The presentation focused on explaining:
+
+1. Why recipes can be understood as compositional symbolic systems.
+2. The central statistical laws investigated in the paper.
+3. How the rank-frequency, vocabulary-growth and complexity graphs were generated.
+4. How the authors estimated the statistical exponents.
+5. Why rigorous distribution fitting was necessary.
+6. How nutritional distributions were evaluated.
+7. How simple generative mechanisms could reproduce observed statistical patterns.
+8. What assumptions and limitations were present in the paper.
+9. Which parts of the methodology could be adapted to CocktailDB.
+10. Which additional preprocessing steps would be necessary for a reliable implementation.
+
+We also prepared questions around the interpretation of the fitted curves, the role of ingredient normalisation, the suitability of the dataset and the difference between reproducing an empirical law and establishing its underlying mechanism.
+
+The presentation was followed by a discussion with Professor Ganesh Bagler.
+
+During this discussion, we sought clarification on the interpretation of the paper's statistical relationships and the practical implications of adapting them to a cocktail-focused dataset.
+
+The discussion helped us distinguish between directly reproducing the original methodology and introducing additional cocktail-specific analyses.
+
+In particular, we understood the importance of:
+
+- Keeping the original definitions intact when attempting reproduction.
+- Avoiding unsupported assumptions about statistical distributions.
+- Treating ingredient normalisation as a prerequisite rather than an optional improvement.
+- Separating empirical observations from explanations of underlying mechanisms.
+- Evaluating whether the available dataset supports each analysis before implementing it.
+- Treating cocktail-specific extensions as additional research questions rather than presenting them as part of the original paper.
+
+---
+
+## 13. Final Understanding and Research Direction
+
+This stage substantially expanded our understanding of computational gastronomy.
+
+Previously, our work had focused on understanding the available data and generating descriptive statistics.
+
+After studying *Universal Statistical Laws Governing Culinary Design*, we began looking at recipes as structured systems whose composition could be examined through information theory, scaling laws and statistical modelling.
+
+The three principal laws provided complementary perspectives:
+
+**Zipf's law** helped us understand how ingredient usage is distributed and why a small number of ingredients can dominate a recipe corpus.
+
+**Heaps' law** helped us understand how culinary vocabulary expands as additional recipes are introduced and why the discovery of new ingredients slows down.
+
+**Menzerath–Altmann law** helped us understand how recipe size may be associated with the average information content of its constituent ingredients.
+
+The nutrient analysis introduced us to distributional regularities in nutritional composition, while the generative models demonstrated how simple mechanisms could reproduce complex statistical patterns.
+
+We also developed a much stronger appreciation of the limitations involved in applying statistical laws to real-world recipe data.
+
+Ingredient normalisation, dataset size, recipe duplication, source bias, category imbalance and incomplete metadata could all influence the final results.
+
+For CocktailDB, we recognised that ingredient quantities, brands, garnishes and recipe variants would require special consideration.
+
+The most important outcome was the development of a concrete research plan for applying the paper's methodology to our dataset.
+
+Rather than simply reproducing graphs, our objective became to investigate whether the same statistical regularities could be observed in cocktails, where the ingredient vocabulary, recipe structure and preparation practices differ from those of traditional cooked dishes.
+
+This provided the foundation for the subsequent phase of work: a deeper, research-driven EDA of CocktailDB guided by the statistical framework established in the paper.
+
+---
+
+## 14. Key Concepts and Terminology Studied
+
+| Concept | Understanding developed |
+|---|---|
+| Zipf's law | Rank-frequency scaling of ingredient usage |
+| Power-law distribution | Heavy-tailed statistical distribution |
+| Zipf exponent | Parameter describing the decay of frequency with rank |
+| Maximum-likelihood estimation | Statistical method for estimating distribution parameters |
+| Minimum frequency cutoff | Lower threshold used when fitting a power-law tail |
+| Kolmogorov–Smirnov distance | Difference between empirical and fitted cumulative distributions |
+| Heaps' law | Sublinear growth of unique ingredients with recipe count |
+| Heaps exponent | Parameter describing vocabulary growth |
+| Information content | Negative logarithm of an ingredient's probability |
+| Menzerath–Altmann law | Relationship between recipe size and average constituent information |
+| Log-normal distribution | Distribution whose logarithm is approximately normally distributed |
+| Logarithmic skewness | Skewness measured after log transformation |
+| Translational invariance | Similarity of distributions after centring in log-space |
+| Preferential reuse | Increased selection probability for frequently used ingredients |
+| Constraint-driven sampling | Ingredient selection restricted by contextual constraints |
+| Generative model | A model that simulates data using proposed underlying mechanisms |
+| Ingredient normalisation | Mapping different textual representations to canonical ingredients |
+
+---
+
+## 15. Research Outputs and Status at the End of This Stage
+
+**Completed during this stage:**
+
+- Studied the research paper *Universal Statistical Laws Governing Culinary Design*.
+- Understood the conceptual foundation of recipes as compositional symbolic systems.
+- Studied Zipf's law and its rank-frequency representation.
+- Studied Heaps' law and vocabulary-growth analysis.
+- Studied the Menzerath–Altmann law and information-theoretic recipe complexity.
+- Studied the log-normal analysis of macronutrient concentrations.
+- Examined the paper's principal graphs and their interpretation.
+- Studied the statistical fitting and validation methodology.
+- Examined the three minimal generative mechanisms.
+- Identified limitations acknowledged by the authors.
+- Identified additional challenges associated with applying the methodology to CocktailDB.
+- Prepared an implementation-oriented research plan.
+- Presented our understanding and proposed direction to the professor.
+- Discussed methodological doubts and clarified the approach to the next stage.
+
+**Planned for the subsequent stage:**
+
+- Improve CocktailDB ingredient extraction and canonicalisation.
+- Implement ingredient rank-frequency analysis.
+- Estimate and validate Zipf exponents.
+- Implement incremental vocabulary-growth experiments.
+- Estimate Heaps exponents.
+- Implement information-theoretic recipe complexity.
+- Fit the Menzerath–Altmann relationship.
+- Evaluate the feasibility of nutritional distribution analysis.
+- Investigate cocktail-specific ingredient combinations and constraints.
+- Compare the empirical results with the statistical patterns reported in the paper.
+
+**Overall conclusion:**
+
+This phase marked the transition from basic exploratory analysis towards a theory-driven investigation of culinary composition. The paper provided the mathematical framework, while the CocktailDB dataset offered an opportunity to investigate whether these statistical regularities also emerge in a specialised domain such as cocktails. The discussion with the professor helped us refine the proposed methodology and establish the direction for the next phase of research.

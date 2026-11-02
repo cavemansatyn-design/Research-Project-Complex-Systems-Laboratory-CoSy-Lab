@@ -1,0 +1,380 @@
+# Research Log – Exploratory Data Analysis on CulinaryDB
+
+**Project:** Data-Driven Investigation of Culinary Patterns in CulinaryDB  
+**Research Paper:** *Data-Driven Investigations of Culinary Patterns in Traditional Recipes Across the World* – Singh & Bagler  
+**Researchers:** Manthan Kapoor and Satyam Singh  
+**Supervisor:** Dr. Ganesh Bagler  
+**Date:** 19 August 2026
+
+## 1. Objective and Research Direction
+
+After completing the initial exploratory data analysis (EDA) on the What's Cooking? dataset, we were asked to perform EDA on the original **CulinaryDB dataset**.
+
+The primary objective was to understand the structure of CulinaryDB, explore ingredient and recipe distributions across different cuisines, and reproduce descriptive analyses and visualisations inspired by the research paper by Singh and Bagler.
+
+Our focus was on identifying patterns in recipe composition, ingredient usage, ingredient diversity and cuisine-level differences. We also aimed to understand the underlying data-processing techniques and statistical concepts used in the original research.
+
+The project was limited to descriptive exploratory data analysis. We did not build machine-learning or predictive models.
+
+## 2. Dataset and Data Preparation
+
+We used the **CulinaryDB dataset**, which contains recipe details, ingredient information, compound ingredients and ingredient aliases.
+
+The analysis involved the following dataset tables:
+
+- `01_Recipe_Details.csv`
+- `02_Ingredients.csv`
+- `03_Compound_Ingredients.csv`
+- `04_Recipe-Ingredients_Aliases.csv`
+
+Since the dataset was organised into multiple related tables, we first examined their structure and relationships before preparing the data for analysis.
+
+### Dataset Overview
+
+| Parameter | Value |
+|---|---:|
+| Total recipes | 45,772 |
+| Number of cuisines | 26 |
+| Unique ingredient entities | 930 |
+| Compound blends | 103 |
+| Average recipe size | 8.44 ingredients |
+| Largest cuisine by recipe count | USA – 16,118 |
+| Smallest cuisine by recipe count | Misc.: Central America – 14 |
+
+### Data Preparation Steps
+
+1. Loaded the CulinaryDB tables and processed the associated ingredient information and aliases.
+2. Examined the relationships between recipes, ingredients and compound ingredients.
+3. Checked for missing values and duplicate recipe IDs. No rows were removed during these checks.
+4. Created a `recipe_size` feature representing the number of distinct ingredients in each recipe.
+5. Created an `ingredient_set` representation for every recipe so that each ingredient was counted only once per recipe.
+6. Constructed ingredient-frequency tables to calculate the number of recipes containing each ingredient.
+7. Prepared cuisine-wise summaries for subsequent statistical analysis and visualisation.
+
+## 3. Libraries and Technologies Used
+
+The complete analysis was performed using Python in a Jupyter Notebook named `eda_culinarydb.ipynb`.
+
+| Library / Module | Purpose |
+|---|---|
+| `pandas` | DataFrame creation, data manipulation, grouping, aggregation, pivot tables and CSV exports. |
+| `numpy` | Numerical operations and reproducibility support. |
+| `matplotlib.pyplot` | Creating line plots, bar charts and exporting visualisations. |
+| `seaborn` | Creating heatmaps for ingredient-category composition. |
+| `collections.Counter` | Counting ingredient frequencies across recipes. |
+| `collections.defaultdict` | Maintaining ingredient and category counts during analysis. |
+| Python `set` | Representing distinct ingredients and calculating unique ingredient collections. |
+| `json` | Reading JSON-formatted data where required in the loading workflow. |
+| `zipfile` | Extracting compressed dataset files. |
+| `io` | Handling file streams during data loading. |
+| `pathlib` | Managing dataset paths, directories and output files. |
+
+## 4. Exploratory Data Analysis and Visualisations
+
+### 4.1 Ingredient Category Composition Across Cuisines
+
+Our first analysis focused on understanding how ingredient categories varied across different cuisines.
+
+We created a rule-based function called `assign_ingredient_category()` to classify ingredients into 16 broad categories:
+
+1. Vegetable
+2. Fruit
+3. Meat
+4. Seafood
+5. Dairy
+6. Legume
+7. Grain/Cereal
+8. Nut/Seed
+9. Spice
+10. Herb
+11. Oil/Fat
+12. Sauce/Condiment
+13. Sweetener
+14. Beverage
+15. Bakery
+16. Other
+
+For every recipe, we identified the categories represented by its ingredients. We then calculated the proportion of recipes in each cuisine containing each category.
+
+Instead of comparing raw counts, we normalised the results by the total number of recipes in the corresponding cuisine. This allowed us to compare cuisines with different numbers of recipes more fairly.
+
+We organised the results into a cuisine-by-category matrix and used Seaborn's heatmap functionality to visualise the distribution.
+
+**Observations and Learnings:**
+
+- Spice, Vegetable and Sauce/Condiment categories appeared in a substantial proportion of recipes across cuisines.
+- Meat, Seafood, Dairy and Legume representation varied across cuisines.
+- Normalisation helped account for differences in the number of recipes available for each cuisine.
+- We understood how rule-based classification can simplify a large ingredient vocabulary into broader groups, while also recognising that such categories are approximations.
+
+### 4.2 Recipe Size Distribution Across Cuisines
+
+Next, we investigated the distribution of recipe sizes, where recipe size refers to the number of distinct ingredients in a recipe.
+
+Using the `recipe_size` column, we calculated the frequency of each recipe size for individual cuisines and for the complete dataset, represented as WORLD.
+
+We used `value_counts()` to calculate the number of recipes corresponding to each size and converted the counts into percentages.
+
+We plotted recipe size against the percentage of recipes using Matplotlib. Individual cuisines were represented by thinner lines, while the overall WORLD distribution was represented by a thicker black line.
+
+We restricted the x-axis to the 99th percentile to improve readability and prevent unusually large recipes from dominating the visualisation.
+
+**Observations and Learnings:**
+
+- The average recipe size across CulinaryDB was approximately 8.44 ingredients.
+- Most cuisines displayed a unimodal distribution, with recipe frequencies increasing towards a peak and subsequently decreasing.
+- Thai, African and South East Asian cuisines tended towards larger average recipe sizes.
+- We understood how distributions provide more information than a single average value.
+
+### 4.3 Ingredient Frequency-Rank Distribution
+
+We then examined how frequently different ingredients appeared across recipes.
+
+Using `collections.Counter` and the `ingredient_set` representation, we counted the number of recipes containing each ingredient.
+
+The ingredients were sorted in descending order of frequency and assigned ranks beginning from 1.
+
+We plotted ingredient rank against frequency using logarithmic scales on both axes. Individual cuisine distributions were represented by separate curves, along with an overall WORLD curve.
+
+**Observations and Learnings:**
+
+- A small number of ingredients appeared in a very large number of recipes.
+- Ingredient frequency decreased sharply as rank increased.
+- Most ingredients appeared in relatively few recipes.
+- Different cuisines displayed different ingredient frequency distributions.
+- We understood the concept of rank-frequency distributions and why logarithmic scales are useful when values vary across several orders of magnitude.
+
+This analysis helped us understand the unequal distribution of ingredient usage within large recipe collections.
+
+### 4.4 Unique Ingredients Across Cuisines
+
+We wanted to investigate the diversity of ingredients represented in different cuisines.
+
+For every cuisine, we collected all ingredients appearing across its recipes and used set union to calculate the number of distinct ingredient entities.
+
+The results were sorted in descending order and visualised using a bar chart.
+
+**Observations and Learnings:**
+
+- USA had the largest ingredient vocabulary, with 595 unique ingredient entities.
+- Italy had 445 unique ingredients.
+- France had 418 unique ingredients.
+- The analysis helped us compare the breadth of ingredient representation across cuisines.
+
+We also understood an important limitation: the number of unique ingredients in the dataset does not necessarily represent the complete ingredient diversity of a real-world cuisine. It only measures the ingredients available in the corresponding dataset records.
+
+### 4.5 Number of Recipes Across Cuisines
+
+We analysed the distribution of recipes across the 26 cuisines.
+
+We used `df['cuisine'].value_counts()` to calculate the number of recipes belonging to each cuisine. The resulting counts were converted into a DataFrame, sorted in descending order and visualised through a bar chart.
+
+**Observations and Learnings:**
+
+- USA had the largest representation, with 16,118 recipes.
+- Italy followed with 7,504 recipes.
+- Indian Subcontinent had 4,058 recipes.
+- The dataset was imbalanced, with some cuisines having significantly more recipes than others.
+
+This analysis helped us understand why dataset size must be considered before drawing conclusions from cuisine-level comparisons.
+
+### 4.6 Average Recipe Size by Cuisine
+
+We performed a more detailed statistical analysis of recipe sizes across cuisines.
+
+Using `groupby()` in Pandas, we grouped recipes by cuisine and calculated:
+
+- Number of recipes
+- Mean recipe size
+- Median recipe size
+- Minimum recipe size
+- Maximum recipe size
+
+We sorted the cuisines according to their mean recipe size and created a bar chart with value labels.
+
+**Observations and Learnings:**
+
+- Thailand had the highest average recipe size at 11.08 ingredients.
+- Africa followed with an average of 10.99 ingredients.
+- Canada had the lowest average at 8.28 ingredients.
+- Australia followed with an average of 8.32 ingredients.
+- Indian, Thai and Caribbean recipes tended to contain more ingredients on average.
+
+We learned that the mean, median and range describe different aspects of a distribution. The mean alone cannot explain the complete structure of recipe sizes.
+
+### 4.7 Top 10 Most Frequent Ingredients Overall
+
+We investigated the most frequently used ingredients across the entire CulinaryDB dataset.
+
+Using `Counter`, we counted the number of recipes containing each ingredient. Each ingredient contributed only one count per recipe, regardless of how it appeared in the original representation.
+
+We selected the ten most frequent ingredients and visualised them using a horizontal bar chart.
+
+**Observations and Learnings:**
+
+- Salt was the most frequently occurring ingredient, appearing in 18,745 recipes.
+- Other frequently occurring ingredients included pepper, garlic, onion, olive oil, sugar and butter.
+- Basic ingredients and seasonings dominated the highest frequency rankings.
+
+We understood the difference between ingredient frequency and raw string occurrence. Our frequency measure represented the number of recipes containing an ingredient, not the total number of times its name appeared in the dataset.
+
+### 4.8 Cuisine-Specific Top Ingredient Analysis
+
+Finally, we performed a focused analysis of the five most frequent ingredients in four cuisines:
+
+- Indian
+- Italian
+- Japanese
+- Mexican
+
+For each cuisine, we filtered the dataset, counted ingredient appearances using `ingredient_set`, selected the five most frequent ingredients and plotted the results using horizontal bar charts.
+
+**Observations and Learnings:**
+
+**Indian Cuisine:**
+- Sunflower oil
+- Cayenne
+- Cumin
+- Turmeric
+- Onion
+
+**Italian Cuisine:**
+- Olive oil
+- Garlic
+- Pepper
+- Salt
+- Tomato
+
+**Japanese Cuisine:**
+- Soy sauce
+- Sugar
+- Water
+- Salt
+- Ginger
+
+**Mexican Cuisine:**
+- Onion
+- Garlic
+- Salt
+- Tomato
+- Cilantro
+
+This analysis helped us understand that ingredient usage patterns at the cuisine level can differ considerably from the overall ingredient-frequency ranking.
+
+We also learned that these observations describe the available dataset and should not automatically be generalised to every traditional recipe belonging to a cuisine.
+
+## 5. New Concepts and Research Understanding Developed
+
+Apart from performing the visualisations, this exercise helped us understand several important concepts in data analysis and computational gastronomy.
+
+### 5.1 Relational Database Structure
+
+We learned how to work with a database whose information is distributed across multiple related tables. Understanding the relationships between recipes, ingredients, compound ingredients and aliases was necessary before performing meaningful analysis.
+
+### 5.2 Ingredient Aliases and Standardisation
+
+We understood the importance of ingredient aliases and standardisation.
+
+Different ingredient names or representations may refer to the same underlying ingredient. If these are treated as completely separate entities, ingredient-frequency calculations and diversity measurements can become misleading.
+
+This made us realise that data cleaning and entity standardisation are especially important when working with large culinary databases.
+
+### 5.3 Set-Based Data Representation
+
+We learned how sets can be used to represent the distinct ingredients in a recipe.
+
+This helped us distinguish between:
+
+- The number of distinct ingredients in a recipe.
+- The number of recipes containing a particular ingredient.
+- The number of unique ingredients represented in a cuisine.
+
+These measurements answer different questions and must not be confused.
+
+### 5.4 Normalisation and Comparative Analysis
+
+We understood why raw counts can be misleading when comparing groups of different sizes.
+
+For example, USA had significantly more recipes than several other cuisines. Comparing only the number of recipes containing a particular ingredient category would naturally favour larger datasets.
+
+By calculating proportions relative to the total number of recipes in each cuisine, we obtained more meaningful comparisons.
+
+### 5.5 Frequency-Rank Distributions
+
+The ingredient frequency-rank analysis introduced us to the concept of rank-frequency distributions.
+
+We understood how a small number of frequently occurring ingredients can dominate a dataset while a large number of ingredients appear relatively infrequently.
+
+We also learned why log-log plots are useful for examining such patterns.
+
+### 5.6 Descriptive Statistics and Distribution Analysis
+
+We moved beyond simply calculating averages and explored distributions using mean, median, minimum, maximum and frequency percentages.
+
+This helped us understand how statistical summaries complement visualisations and why the shape of a distribution matters when interpreting results.
+
+### 5.7 Rule-Based Ingredient Categorisation
+
+We learned how a large ingredient vocabulary can be organised into broader categories through keyword-based rules.
+
+At the same time, we recognised that rule-based categorisation has limitations. Some ingredients may be difficult to classify, and the resulting categories are approximations rather than definitive culinary classifications.
+
+### 5.8 Ingredient Co-occurrence Versus Chemical Food Pairing
+
+One of the most important conceptual distinctions we understood was the difference between ingredient-level patterns and chemical food pairing.
+
+Two ingredients appearing frequently together in recipes does not necessarily mean that they share flavour compounds or are chemically compatible.
+
+The original research paper investigated food pairing using the overlap of flavour molecules between ingredients. Our EDA, on the other hand, examined recipe and ingredient-level patterns.
+
+Understanding this distinction helped us interpret our results correctly and avoid making conclusions that the available data could not support.
+
+## 6. Analyses from the Original Paper That Could Not Be Reproduced
+
+The original Singh and Bagler paper included food-pairing analyses that required mapping ingredients to flavour molecules using FlavorDB.
+
+These analyses involved:
+
+- Calculating shared flavour-compound scores between ingredients.
+- Computing food-pairing scores at the recipe and cuisine levels.
+- Generating randomised cuisine controls.
+- Comparing actual cuisine patterns with randomised baselines.
+- Calculating Z-scores to evaluate the statistical significance of food-pairing patterns.
+
+However, CulinaryDB alone did not provide the volatile chemical compound profiles required for these calculations.
+
+Therefore, we deliberately did not invent flavour molecules, generate artificial food-pairing scores or substitute an unrelated similarity metric and present it as the original paper's result.
+
+Instead, we concentrated on reproducing the descriptive recipe and ingredient analyses that could be supported by CulinaryDB.
+
+This was an important research lesson: reproducing scientific work requires understanding the data requirements and assumptions behind the original methodology, rather than simply recreating the appearance of its visualisations.
+
+## 7. Outputs and Deliverables
+
+The complete analysis was performed in the Jupyter Notebook `eda_culinarydb.ipynb`.
+
+The following outputs were generated:
+
+**Visualisations:**
+- 11 figure outputs in PNG format.
+- Figures exported at 300 DPI.
+
+**CSV Files:**
+- `cuisine_summary.csv`
+- `ingredient_frequency.csv`
+- `unique_ingredients_by_cuisine.csv`
+- `recipe_size_statistics.csv`
+- `top_ingredients_overall.csv`
+
+**Documentation:**
+- A 14-page report documenting the dataset, methodology, analyses, visualisations, observations and limitations.
+
+## 8. Overall Research Outcome
+
+Through this exercise, we moved from analysing a separate recipe dataset to working directly with the original CulinaryDB dataset used in the research context.
+
+We became more familiar with the database's relational structure, ingredient mappings, aliases and cuisine labels. We also developed practical experience in data preparation, aggregation, frequency analysis, statistical summaries and visualisation.
+
+More importantly, we developed a clearer understanding of how to translate research-paper methodologies into practical data-analysis workflows, how to interpret culinary patterns and how to identify the limitations imposed by the available data.
+
+This exercise established a descriptive baseline of CulinaryDB and strengthened our understanding of recipe composition and ingredient usage across cuisines. It also provided a foundation for subsequent investigations into ingredient relationships, chemical flavour compatibility and more advanced food-pairing research.

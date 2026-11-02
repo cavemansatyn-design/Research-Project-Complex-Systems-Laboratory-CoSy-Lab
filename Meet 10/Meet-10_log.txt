@@ -1,0 +1,1129 @@
+# Research Log – Refinement, Robustness Analysis and Extended Investigation of CocktailDB
+
+**Research Area:** Computational Gastronomy, Statistical Robustness, Network Science and Culinary Scaling Laws  
+**Reference Paper:** *Universal Statistical Laws Governing Culinary Design* – Bagler et al. (2026)  
+**Dataset:** CocktailDB  
+**Original Report:** CocktailDB_EDA_Research_Report-1.pdf  
+**Modified Report:** CocktailDB_EDA_Research_Report-1modified.pdf  
+**Research Supervisor:** Dr. Ganesh Bagler  
+**Researcher:** Satyam Singh
+
+---
+
+## 1. Background and Motivation
+
+Following the presentation of our initial 39-page CocktailDB research report, we moved into a refinement phase.
+
+The original implementation had already reproduced the major analytical components of the paper, including Zipf's law, Heaps' law, the Menzerath–Altmann relationship and nutrient-distribution analysis.
+
+It had also introduced ingredient co-occurrence networks, PMI analysis, correlation matrices and PCA.
+
+However, the first implementation raised several questions about the robustness and interpretation of the results.
+
+A particularly important realization was that generating a statistically impressive graph did not automatically establish the underlying claim.
+
+For example:
+
+- A high R² in a log-log rank-frequency plot did not necessarily establish a perfect power law.
+- A coloured heatmap could represent negative correlation, positive correlation, frequency or statistical distance depending on its colour scale.
+- A strong ingredient co-occurrence edge did not necessarily indicate flavour compatibility.
+- A network containing only the most frequent ingredients could hide the structure of the full ingredient vocabulary.
+- Logarithmic transformations could improve visualization without changing rank-based correlations.
+- A visually clear cluster could still have very weak quantitative separation.
+
+We therefore revisited the original results and extended the analysis in a more critical and statistically controlled direction.
+
+The modified report preserves the original 39 pages and appends 27 pages of new analysis, numbered from 40 to 66.
+
+The additional work was organised around seven major refinement areas.
+
+---
+
+## 2. Reanalysis and Ingredient Normalization Audit
+
+Before performing the new analyses, we reconstructed the analytical dataset from the original CSV.
+
+This was necessary because the original report's scripts and cleaned intermediate ingredient tables were not available as attachments.
+
+We retained the original raw dataset and reconstructed the preprocessing pipeline independently.
+
+### 2.1 Reanalysis of Dataset Counts
+
+The reconstructed audit confirmed:
+
+| Quantity | Original report | Reanalysis |
+|---|---:|---:|
+| Raw rows | 16,895 | 16,895 |
+| Columns | 9 | 9 |
+| Name vs Name.1 mismatches | 0 | 0 |
+| Exact duplicate extras | 17 | 17 |
+| Name + Ingredients duplicate extras | 23 | 23 |
+| Frequency-corpus recipes | 16,872 | 16,872 |
+| Standard/reconstructed vocabulary | 14,466 | 13,860 |
+| Surface vocabulary | 31,180 | 31,224 |
+| Recipes containing vodka | 2,191 | 2,381 |
+| Median ingredient count | 4 | 4 |
+| Mean ingredient count | 4.67 | 4.674 |
+| Maximum ingredient count | 22 | 22 |
+
+The reconstructed standard vocabulary was smaller than the original one.
+
+This was not silently treated as an improvement in the original implementation. It was recorded as a difference caused by reconstructing the normalization rules from the available CSV and report documentation.
+
+### 2.2 Reconstructed Normalization Procedure
+
+The new normalization procedure involved:
+
+1. Splitting ingredient strings on the pipe delimiter.
+2. Applying Unicode NFKC normalization.
+3. Converting text to lowercase.
+4. Normalizing whitespace.
+5. Removing boundary quantities and measurement units.
+6. Repeating boundary removal up to three times.
+7. Mapping Cointreau to orange liqueur.
+8. Mapping Kahlua to coffee liqueur.
+9. Retaining internal brands and descriptors.
+10. Counting each normalized ingredient at most once per recipe.
+
+We retained distinctions such as lime versus lime juice and fresh versus non-fresh forms in the reconstructed standard representation.
+
+We also introduced a literal-string sensitivity representation in which quantity-bearing ingredient descriptions were not merged.
+
+This was important because the results of Zipf, Heaps and co-occurrence analysis could change depending on the ingredient identity definition.
+
+### 2.3 Why This Audit Was Necessary
+
+Ingredient normalization affects nearly every subsequent result.
+
+Changing ingredient identity changes:
+
+- Vocabulary size.
+- Ingredient frequency.
+- Rank assignment.
+- Recipe-size calculation.
+- Information content.
+- Heaps exponent.
+- Co-occurrence counts.
+- Network structure.
+
+Therefore, we explicitly documented the reconstruction rather than treating the old and new ingredient counts as interchangeable.
+
+---
+
+## 3. Modification 1 – Testing Zipf's Law Across Multiple Rank Intervals
+
+### 3.1 Problem in the Original Report
+
+The original report primarily presented the Zipf rank-frequency fit over ranks 5–500.
+
+The log-log graph showed a high R², but the empirical curve exhibited curvature.
+
+This raised the question of whether the estimated exponent was stable across a wider rank range.
+
+### 3.2 New Implementation
+
+We fitted the rank-frequency relationship over three cumulative rank intervals:
+
+- 5–500.
+- 5–1000.
+- 5–2000.
+
+The model remained:
+
+log10 f(r) = a - α × log10 r
+
+The frequency definition was unchanged: the number of distinct recipes containing an ingredient.
+
+The three intervals were overlapping cumulative windows, not independent segments.
+
+### 3.3 Results
+
+| Rank interval | Points | Alpha | R² |
+|---|---:|---:|---:|
+| 5–500 | 496 | 1.032 | 0.989 |
+| 5–1000 | 996 | 1.123 | 0.989 |
+| 5–2000 | 1996 | 1.187 | 0.991 |
+
+The exponent increased as more of the lower-frequency ingredient tail was included.
+
+This demonstrated that the fitted slope was not constant across the selected ranges.
+
+### 3.4 Additional Diagnostics
+
+We extended the analysis further by:
+
+- Examining residual curvature.
+- Comparing a free-slope model against a fixed inverse-rank slope.
+- Fitting a quadratic relationship in log-rank space.
+- Examining the influence of quantity-bearing literal strings.
+- Separating the rank intervals into disjoint segments.
+- Performing 250 recipe-resampling repetitions.
+
+The literal-string representation produced much smaller slopes:
+
+| Rank interval | Literal-string alpha |
+|---|---:|
+| 5–500 | 0.618 |
+| 5–1000 | 0.683 |
+| 5–2000 | 0.750 |
+
+This showed that ingredient normalization materially influenced the scaling result.
+
+The residual analysis also indicated systematic curvature rather than purely random deviations from a straight line.
+
+### 3.5 Interpretation
+
+The analysis supported the existence of strong rank-ordered ingredient reuse.
+
+However, it did not establish one invariant exponent across all scales.
+
+The most appropriate conclusion was that CocktailDB displayed approximate Zipf-like structure over the examined ranges, but the exact slope depended on rank interval and ingredient representation.
+
+We also reinforced an important statistical distinction:
+
+A high R² from log-log OLS is a descriptive fit, not a complete power-law validation procedure.
+
+The Clauset-style frequency-distribution MLE and the rank-frequency OLS exponent measure different things and should not be confused.
+
+---
+
+## 4. Modification 2 – More Detailed Heaps' Law Visualization
+
+### 4.1 Problem in the Original Report
+
+The original Heaps analysis displayed:
+
+- Mean vocabulary-growth curves.
+- A 95% permutation band.
+- A histogram of fitted beta exponents.
+
+However, the distribution of vocabulary sizes at particular recipe counts was not directly visualized using boxplots.
+
+This made it difficult to communicate how much vocabulary growth varied across the 100 random recipe orderings.
+
+### 4.2 New Implementation
+
+We generated vocabulary-growth distributions at fixed recipe counts.
+
+The selected checkpoints included:
+
+20, 100, 500, 1,000, 5,000, 10,000 and 16,872 recipes.
+
+For each checkpoint, we calculated vocabulary size across the 100 random recipe orderings.
+
+We also generated a separate boxplot of the fitted Heaps exponents.
+
+### 4.3 Results
+
+The reconstructed Heaps analysis produced:
+
+- Mean beta: 0.757.
+- Standard deviation: 0.010.
+- Central 95% ordering range: [0.736, 0.773].
+
+At the complete corpus size, every ordering necessarily contained the same final set of ingredients.
+
+Therefore, the boxplot at R = 16,872 collapsed to one value: 13,860.
+
+This was an important mathematical consistency check.
+
+### 4.4 Interpretation
+
+The analysis confirmed sublinear vocabulary growth over the fitted range.
+
+The random permutations quantified variability caused by recipe ordering within the fixed dataset.
+
+They did not measure uncertainty about every possible cocktail recipe or establish that the same exponent would apply to all cocktail collections.
+
+The new mean beta of 0.757 was not directly interchangeable with the earlier 0.738 estimate because the reconstructed ingredient vocabulary and fitting grid differed.
+
+---
+
+## 5. Modification 3 – Correct Interpretation of Heatmaps and Correlation Results
+
+### 5.1 Problem in the Original Report
+
+The original report contained several heatmaps:
+
+- Ingredient co-occurrence counts.
+- Nutrient Spearman correlations.
+- Distribution-fitting KS distances.
+
+These represented different statistical quantities.
+
+Their colours could easily be misinterpreted if the corresponding numerical scales were not examined.
+
+We therefore revised the heatmap interpretation and added numerical annotations.
+
+### 5.2 New Correlation Matrix
+
+We generated an annotated Spearman correlation matrix with:
+
+- A fixed colour range from -1 to +1.
+- Zero positioned at the centre.
+- Negative and positive associations represented using a diverging colour scale.
+- Pairwise observation counts displayed in the cells.
+
+The interpretation was clarified:
+
+- Blue: negative association.
+- White: association close to zero.
+- Red: positive association.
+
+This colour convention applied to the new diverging correlation matrix.
+
+It did not apply to the original ingredient co-occurrence heatmap, where darker blue represented a higher shared-recipe count.
+
+Similarly, the KS-distance heatmap represented distribution-fit distances, where smaller values indicated closer fits rather than weaker correlations.
+
+### 5.3 Strong Nutrient Correlations
+
+The reanalysis revealed several strong nutrient associations.
+
+| Nutrient pair | Spearman correlation |
+|---|---:|
+| Carbohydrates vs sugar | 0.957 |
+| Fat vs saturated fat | 0.916 |
+| Calories vs carbohydrates | 0.696 |
+
+The strong relationships were partly explained by the mathematical definitions of the variables.
+
+For example:
+
+- Sugar contributes to total carbohydrate mass.
+- Saturated fat is part of total fat.
+- Calories and macronutrients may increase together.
+
+These are not evidence that one nutrient causes another.
+
+### 5.4 Weak Associations and Their Interpretation
+
+We revisited several weak or moderate relationships.
+
+| Variable pair | n | Spearman rho |
+|---|---:|---:|
+| Ingredient count vs preparation time | 6,976 | 0.352 |
+| Preparation time vs votes | 6,082 | -0.291 |
+| Rating vs votes | 7,878 | -0.058 |
+| Ingredient count vs calories | 5,683 | 0.247 |
+| Ingredient count vs votes | 7,878 | -0.191 |
+| Ingredient count vs protein | 4,988 | 0.144 |
+
+We examined possible explanations.
+
+**Bounded ratings:** 84.7% of analyzed ratings were at least four stars, limiting variation.
+
+**Tied preparation times:** 69.7% of observed preparation times were exactly three minutes, restricting rank resolution.
+
+**Ingredient-count limitations:** Every ingredient contributed equally to ingredient count, regardless of its quantity or nutritional contribution.
+
+**Source heterogeneity:** The rating-vote relationship differed substantially between nutrient-format subsets.
+
+The correlation between rating and votes was close to zero in colon-style nutrient records but more negative in compact-format and nutrient-absent subsets.
+
+These formats were treated as source-format proxies, not confirmed source identities.
+
+### 5.5 Important Statistical Understanding
+
+A very small p-value does not necessarily imply a meaningful relationship.
+
+For example, rating versus votes had a statistically detectable p-value, but the Spearman coefficient was only approximately -0.058.
+
+We therefore placed more emphasis on effect size, confidence intervals and sample size than on statistical significance alone.
+
+---
+
+## 6. Modification 4 – Logarithmic Transformations and Visualization of Skewed Distributions
+
+### 6.1 Problem in the Original Report
+
+Several variables were heavily right-skewed.
+
+A small number of extreme observations compressed the central part of the distributions.
+
+The original report had already included some logarithmic views, but not every figure had matched raw-scale and transformed-scale comparisons.
+
+### 6.2 New Approach
+
+We introduced paired raw and log1p visualizations.
+
+The transformation was:
+
+log1p(x) = ln(1+x)
+
+This allowed zero values to be retained.
+
+We applied the transformation selectively to:
+
+- Ingredient frequencies.
+- Votes.
+- Preparation times.
+- Calories.
+- Carbohydrates.
+- Protein.
+- Fat.
+- Sugar.
+- Sodium.
+- Selected multivariate axes.
+
+We retained ratings and short integer recipe sizes on their original scales.
+
+### 6.3 Ingredient Frequency
+
+Under the reconstructed normalization:
+
+- Vocabulary size: 13,860.
+- Singleton ingredients: 10,210.
+- Singleton percentage: 73.7%.
+- Median frequency: 1.
+- Maximum frequency: 2,381.
+
+The paired plots showed that the dominant singleton mass remained visible even after logarithmic compression.
+
+The transformation improved visualization but did not make the distribution Gaussian.
+
+### 6.4 Votes
+
+Votes had:
+
+- Median: 30.
+- Maximum: 4,348.
+- Raw skewness: 25.10.
+- Log1p skewness: -0.68.
+
+The transformation compressed the extreme right tail and made the central distribution easier to inspect.
+
+However, votes continued to represent popularity or attention, not objective quality.
+
+### 6.5 Preparation Time
+
+Preparation time had:
+
+- Median: 3 minutes.
+- 95th percentile: 10 minutes.
+- Maximum: 20,170 minutes.
+- Zero-minute observations: 44.
+
+Raw skewness was approximately 78.78 and decreased to 4.58 after log1p.
+
+The extreme value belonged to Lemongrass-Ginger Infused Tequila, with a reported duration of 336 hours and 10 minutes.
+
+We retained the value because the source data did not establish whether it represented active preparation, infusion time or total elapsed time.
+
+### 6.6 Nutrient Distributions
+
+We generated matched raw/log1p plots for several nutrients.
+
+| Nutrient | Observations | Zero values | Median | 95th percentile | Maximum |
+|---|---:|---:|---:|---:|---:|
+| Calories | 5,683 | 2 | 201 | 545.6 | 20,506 |
+| Carbohydrates | 5,615 | 12 | 17 | 58 | 3,699 |
+| Sugar | 4,736 | 0 | 14 | 48 | 3,616 |
+| Protein | 4,988 | 408 | 0.4 | 6 | 364 |
+| Fat | 4,637 | 506 | 0.2 | 15 | 1,127 |
+| Sodium | 4,811 | 0 | 6 | 91 | 28,703 |
+
+The analysis revealed that logarithmic compression did not affect all nutrient distributions in the same way.
+
+Calories, carbohydrates and sugar had negative log1p skewness in the new analysis, while protein, fat and sodium remained positively skewed.
+
+This corrected the overly broad assumption that every transformed distribution would remain strongly right-skewed.
+
+### 6.7 Extreme Nutrient Values
+
+We investigated unusually large nutrient records.
+
+For example:
+
+- Homemade Coquito Bueno contained a reported 20,506 kcal.
+- Medd contained a reported 3,699 g carbohydrates.
+- Eric's Bloody Bull and Bloody Bull contained unusually high sodium values.
+
+The values were present in the original nutrient strings.
+
+Possible explanations included batch-level quantities, inconsistent source conventions or data-entry problems.
+
+However, serving-size information was unavailable, so we did not claim to have identified the exact cause.
+
+### 6.8 Important Distinction
+
+We learned that log1p visualization and the original positive-only natural-log distribution analysis were different procedures.
+
+A symmetric-looking log1p distribution does not prove that the original variable is log-normal.
+
+No observations were silently deleted or winsorized.
+
+---
+
+## 7. Modification 5 – Hierarchical Clustering of Ingredient Co-occurrence
+
+### 7.1 Problem in the Original Report
+
+The first report contained a co-occurrence heatmap and a thresholded PMI network.
+
+However, ingredients were primarily displayed according to frequency, and there was no explicit hierarchical clustering of their recipe-membership patterns.
+
+We therefore investigated whether ingredients could be grouped according to how similarly they appeared across recipes.
+
+### 7.2 Jaccard Similarity
+
+For two ingredients i and j, Jaccard similarity was calculated as:
+
+J(i,j) = c(i,j) / [f(i) + f(j) - c(i,j)]
+
+Where:
+
+- c(i,j) is the number of recipes containing both ingredients.
+- f(i) is the number of recipes containing ingredient i.
+- f(j) is the number of recipes containing ingredient j.
+
+The corresponding distance was:
+
+D(i,j) = 1 - J(i,j)
+
+This measures the overlap between recipe sets and reduces the automatic advantage of ingredients that are globally common.
+
+### 7.3 Hierarchical Clustering
+
+We selected the top 40 reconstructed ingredients by incidence.
+
+We then:
+
+1. Constructed recipe-membership representations.
+2. Calculated the Jaccard similarity matrix.
+3. Converted similarity into distance.
+4. Applied average-linkage hierarchical clustering.
+5. Generated a heatmap with dendrograms.
+
+The resulting hierarchy was exploratory.
+
+### 7.4 Cluster Evaluation
+
+We examined cluster cuts for k = 2 through 8 using silhouette scores on the precomputed Jaccard distance.
+
+The maximum silhouette score was only 0.020 at k = 3.
+
+We used k = 3 to maintain consistent visual grouping, but the near-zero silhouette demonstrated that the global separation was weak.
+
+### 7.5 Observed Groups
+
+The three groups contained different co-use patterns.
+
+**Group 1 – Teal**
+
+Contained ingredients such as:
+
+- Fresh lime juice.
+- Angostura bitters.
+- Fresh lemon juice.
+- Sweet vermouth.
+- Sugar syrup.
+- Soda water.
+- Dry vermouth.
+- Orange bitters.
+- Bourbon.
+
+**Group 2 – Amber**
+
+Contained a broader mixture of:
+
+- Vodka.
+- Lime juice.
+- Lemon juice.
+- Orange juice.
+- Gin.
+- Simple syrup.
+- Pineapple juice.
+- Triple sec.
+- Ice.
+- Tequila.
+- Cranberry juice.
+- Rum varieties.
+- Liqueurs and sweeteners.
+
+**Group 3 – Purple**
+
+Contained:
+
+- Coffee liqueur.
+- Irish cream.
+- Milk.
+- Whipped cream.
+- Almond liqueur.
+
+### 7.6 Interpretation and Limitations
+
+Some familiar combinations appeared in the hierarchy:
+
+- Triple sec and tequila.
+- Coffee liqueur and Irish cream.
+- Pineapple juice and coconut rum.
+- Lemon juice and simple syrup.
+
+However, the clustering did not establish taste compatibility, ingredient function or cultural origin.
+
+The weak silhouette indicated that these were exploratory co-use groups, not validated cocktail categories.
+
+---
+
+## 8. Modification 6 – More Rigorous Ingredient Network Visualization
+
+### 8.1 Problem in the Original Network
+
+The original network used the top 40 ingredients and a minimum joint occurrence threshold.
+
+The report had not fully quantified how edge widths were mapped to frequency or clearly separated frequency from association strength.
+
+We therefore refined the network visualization.
+
+### 8.2 Edge-Width Definition
+
+For a pair of ingredients, normalized prevalence was defined as:
+
+Prevalence(i,j) = c(i,j) / N
+
+Where N was the full frequency-corpus size of 16,872 recipes.
+
+Edge width was scaled relative to the maximum pair prevalence.
+
+Node size was scaled according to ingredient frequency.
+
+Node colours represented the three exploratory hierarchical co-use groups.
+
+The positions were generated using a fixed seeded spring layout.
+
+Spatial distance was not interpreted as a statistical similarity measurement.
+
+### 8.3 Frequency, Jaccard, PMI and Disparity
+
+We explicitly separated four quantities.
+
+**Corpus prevalence**
+
+c(i,j) / N
+
+Measures how common a pair is in the entire corpus.
+
+**Jaccard similarity**
+
+c(i,j) / [f(i) + f(j) - c(i,j)]
+
+Measures the overlap between the recipes containing the two ingredients.
+
+**PMI**
+
+ln[c(i,j)N / (f(i)f(j))]
+
+Measures whether the pair occurs more frequently than expected from independent marginal prevalences.
+
+**Disparity local share**
+
+c(i,j) / sum_k c(i,k)
+
+Measures how much of one ingredient's total pair weight is assigned to a particular neighbour.
+
+These metrics answer different questions.
+
+For example, vodka and orange juice appeared together in 320 recipes, while Irish cream and whipped cream appeared together in 72.
+
+The former had greater corpus prevalence, while the latter had a higher PMI.
+
+Therefore, the most common pair was not necessarily the most disproportionately associated pair.
+
+### 8.4 Threshold Clarification
+
+The original report contained two descriptions of the network threshold:
+
+- Positive PMI.
+- PMI greater than 0.4.
+
+These are not equivalent.
+
+The reconstructed network explicitly used:
+
+- Minimum co-occurrence count: 25.
+- Natural-log PMI greater than 0.4.
+
+The resulting network contained 159 edges rather than the original 166, partly because ingredient normalization had changed.
+
+This made the selection rule more explicit and reproducible.
+
+---
+
+## 9. Modification 7 – Full Ingredient Network and Disparity-Filter Backbone
+
+This was the most substantial new extension beyond the original report.
+
+### 9.1 Motivation
+
+The original network displayed only a selected subset of common ingredients.
+
+It could not show how the entire ingredient vocabulary was connected or how much information was lost when filtering the network.
+
+We therefore constructed the full ingredient co-occurrence graph before applying top-N selection or PMI thresholds.
+
+### 9.2 Full Network Construction
+
+Every distinct ingredient was represented as a node.
+
+For each recipe, every unordered pair of distinct ingredients contributed one unit of co-occurrence weight.
+
+We built two network representations:
+
+1. Boundary-normalized ingredient strings.
+2. Literal quantity-bearing strings.
+
+The resulting full graphs were:
+
+| Quantity | Boundary-normalized | Literal strings |
+|---|---:|---:|
+| Nodes | 13,860 | 31,224 |
+| Observed pair edges | 99,039 | 152,293 |
+| Pair-incidence weight sum | 172,300 | 173,077 |
+
+The two representations showed how ingredient normalization affected the topology of the graph.
+
+### 9.3 Disparity Filter
+
+We studied the disparity-filter method from Serrano, Boguñá and Vespignani (2009).
+
+For an edge between nodes i and j:
+
+- w(i,j) represents edge weight.
+- s(i) represents the total strength of node i.
+- k(i) represents the degree of node i.
+- p(i,j) represents the fraction of node i's strength assigned to j.
+
+The normalized local share was:
+
+p(i,j) = w(i,j) / s(i)
+
+The endpoint significance expression was:
+
+a(i,j) = [1 - p(i,j)]^[k(i)-1]
+
+We used the rule that an undirected edge was retained when either endpoint passed the selected alpha threshold.
+
+This was the OR rule.
+
+We also evaluated an AND-rule sensitivity analysis, which required significance at both endpoints.
+
+### 9.4 Alpha Sensitivity Analysis
+
+We examined multiple alpha values:
+
+0, 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.2, 0.5, 0.9 and 1.
+
+Selected results:
+
+| Alpha | Retained edges | Active nodes | Retained weight |
+|---|---:|---:|---:|
+| 0.001 | 895 | 332 | 18.79% |
+| 0.005 | 1,432 | 469 | 22.84% |
+| 0.01 | 1,766 | 541 | 24.75% |
+| 0.025 | 2,478 | 670 | 28.00% |
+| 0.05 | 3,500 | 860 | 31.53% |
+| 0.1 | 5,433 | 1,259 | 36.44% |
+| 0.2 | 9,873 | 2,250 | 43.61% |
+| 0.5 | 88,751 | 13,229 | 93.99% |
+| 0.9 | 99,039 | 13,860 | 100% |
+
+At alpha = 0.05:
+
+- Only 3.53% of edges survived.
+- Only 6.20% of nodes remained active.
+- 31.53% of pair-incidence weight was retained.
+
+This demonstrated that a readable network backbone could represent a compact recurring core while excluding most of the rare ingredient vocabulary.
+
+### 9.5 Important Observation
+
+A sharp transition occurred between alpha = 0.2 and alpha = 0.5.
+
+Edge retention increased from approximately 9.97% to 89.61%.
+
+This was associated with the large number of low-count edges having similar local weights.
+
+We also observed that the full network had 128 connected components, with the largest containing 13,421 nodes.
+
+High edge retention therefore did not automatically imply a single universally connected network.
+
+### 9.6 Retained Versus Non-Retained Edges
+
+We compared retained and non-retained ties.
+
+Some examples:
+
+| Ingredient pair | Joint recipes | Minimum endpoint p-value | Result at 0.05 |
+|---|---:|---:|---|
+| Fresh lemon juice + dark rum | 7 | 0.0387 | Retained |
+| Rum + soda water | 7 | 0.0430 | Retained |
+| Coconut rum + Irish cream | 14 | 0.0524 | Not retained |
+| Melon liqueur + almond liqueur | 12 | 0.0647 | Not retained |
+
+This showed that the disparity filter did not simply retain the pairs with the highest raw counts.
+
+The local importance of an edge relative to the other connections of its endpoint mattered.
+
+### 9.7 Comparison Against a Global Count-Based Filter
+
+We compared the disparity filter at alpha = 0.05 against a simple baseline retaining the same number of highest-count edges.
+
+| Method | Edges | Active nodes | Retained weight |
+|---|---:|---:|---:|
+| Local disparity filter | 3,500 | 860 | 31.53% |
+| Largest-count baseline | 3,500 | 577 | 32.20% |
+
+The global baseline retained slightly more total weight but reached fewer nodes.
+
+The local filter therefore provided broader coverage across lower-strength regions, although it was not superior on every criterion.
+
+### 9.8 Statistical Robustness
+
+We extended the backbone analysis using:
+
+- OR versus AND endpoint rules.
+- Boundary-normalized versus literal-string representations.
+- Multiple alpha thresholds.
+- Benjamini–Hochberg multiple-testing sensitivity.
+- Fisher exact tests under an ingredient-occurrence independence null.
+
+At alpha = 0.05:
+
+- The normalized OR rule retained 3,500 edges.
+- The normalized AND rule retained 1,676 edges.
+- Benjamini–Hochberg sensitivity retained 628 edges.
+
+We also performed one-sided Fisher exact tests on all 780 top-40 ingredient pairs, with Benjamini–Hochberg correction.
+
+The comparison demonstrated that passing the disparity filter was not equivalent to showing positive ingredient-pair enrichment under an independence null.
+
+For example, vodka and lemon juice occurred together 173 times and passed the disparity filter, but had negative PMI and a Fisher enrichment q-value of 1.
+
+Therefore, local network significance could not be interpreted as evidence of positive pairing preference.
+
+### 9.9 Limitations of the Backbone
+
+The disparity filter uses a local strength-allocation null.
+
+A retained edge is not proven to represent a true culinary relationship, and a non-retained edge is not necessarily unimportant.
+
+The endpoint tests are dependent because many edges share ingredients and recipes.
+
+The unadjusted alpha sweep was exploratory.
+
+Even the alpha = 0.05 backbone retained only a small fraction of the original ingredient vocabulary.
+
+A stronger future null model would preserve recipe-size and ingredient-degree characteristics through recipe-incidence randomization.
+
+---
+
+## 10. Additional PCA Sensitivity Analysis
+
+The original PCA used standardized nutrient values on their original scales.
+
+However, extremely large nutrient observations could influence the covariance structure.
+
+We therefore repeated PCA using log1p-transformed nutrient inputs.
+
+The comparison used exactly the same:
+
+- 2,319 complete-case recipes.
+- Eight nutrient variables.
+- Standardization procedure.
+
+### Results
+
+| PCA input | PC1 | PC2 |
+|---|---:|---:|
+| Original nutrient values | 61.46% | 16.83% |
+| Log1p nutrient values | 59.30% | 17.74% |
+
+The first two components continued to explain a substantial proportion of the variance.
+
+The loadings changed after transformation, with sodium's PC1 loading increasing from approximately 0.084 to 0.329.
+
+This demonstrated that extreme nutrient values influenced the original PCA geometry.
+
+We concluded that PCA components were descriptive representations of reported nutrient quantities, not universal health scores or validated recipe clusters.
+
+---
+
+## 11. Mathematical and Interpretational Corrections
+
+During the modification stage, we also revisited the original report for inconsistencies.
+
+Several corrections were documented.
+
+### 11.1 Rating-Vote Correlation Sign
+
+The original Figure 9 caption described the association as positive while reporting a Spearman correlation of -0.058.
+
+The correct interpretation is a weak negative association.
+
+### 11.2 Ratings Near Five Stars
+
+The earlier description of ratings as left-censored toward five stars was too strong.
+
+The distribution demonstrated a ceiling concentration near the upper end of the rating scale, but the dataset did not establish a formal censoring mechanism.
+
+### 11.3 Heaps Exponent Comparison
+
+The earlier report described beta approximately 0.74 as close to the reference paper's approximately 0.56.
+
+Both indicate sublinear growth, but numerical closeness should not be asserted without an agreed comparison criterion.
+
+### 11.4 Menzerath–Altmann Equation Check
+
+We revisited the fitted function:
+
+y(L) = a × L^b × exp(cL)
+
+The derivative of its logarithm is:
+
+d(log y)/dL = b/L + c
+
+A positive-L minimum requires the appropriate sign combination of b and c.
+
+The quoted reference parameters b = -0.26 and c = -0.019 cannot produce a positive-L minimum under this stated form.
+
+For the cocktail fit, b = -0.157 and c = 0.042 imply a model minimum near L = 3.74.
+
+We recorded this as an internal equation and parameter-transcription check.
+
+The reference paper's reported parameter values should be verified before repeating the comparison with its claimed minimum near L = 13.
+
+### 11.5 PMI Threshold Consistency
+
+The original report used both positive PMI and PMI greater than 0.4 in different descriptions.
+
+These represent different edge-selection criteria.
+
+The modified report made the actual threshold explicit.
+
+### 11.6 Distribution-Fitting Interpretation
+
+We also clarified that:
+
+- A high fitting score is not automatically a goodness-of-fit test.
+- A visually symmetric transformed distribution does not establish log-normality.
+- Candidate KS rankings are descriptive unless the fitting and testing procedure is properly calibrated.
+
+These corrections were important because we wanted the final report to communicate what the analysis actually established, rather than what a graph might appear to suggest.
+
+---
+
+## 12. Libraries and Techniques Used in the Modification Stage
+
+The modified report retained the original scientific Python environment and introduced additional statistical and network procedures.
+
+### Existing libraries retained
+
+| Library | Continued use |
+|---|---|
+| Pandas | Reconstructed dataset, grouping, ingredient incidence and tables |
+| NumPy | Deterministic sampling, arrays and numerical transformations |
+| Matplotlib | Original and new figures, boxplots, heatmaps, residuals and network plots |
+| SciPy | Correlations, nonlinear fitting, statistical tests and distance calculations |
+| powerlaw | Power-law fitting and distribution comparisons |
+| Scikit-learn | PCA, standardization and silhouette evaluation |
+| NetworkX | Full graph construction, graph filtering and network visualization |
+| ReportLab | Appending and producing the modified research PDF |
+| Pillow | Figure dimension and aspect-ratio handling |
+| re / unicodedata | Ingredient, nutrient and preparation-time parsing |
+
+### Additional statistical and analytical techniques
+
+1. Rank-window sensitivity analysis.
+2. Log-log OLS regression.
+3. Residual analysis and quadratic log-space fitting.
+4. Recipe bootstrap and reranking sensitivity.
+5. Heaps vocabulary-growth boxplots.
+6. Spearman correlation matrices with pairwise sample counts.
+7. Bootstrap confidence intervals.
+8. Log1p transformations.
+9. Hexbin density visualization.
+10. Jaccard similarity and distance.
+11. Average-linkage hierarchical clustering.
+12. Silhouette-score evaluation.
+13. Corpus-normalized network edge weights.
+14. Disparity-filter backbone extraction.
+15. Alpha-threshold sensitivity analysis.
+16. OR versus AND endpoint rules.
+17. Benjamini–Hochberg multiple-testing correction.
+18. Fisher exact tests.
+19. Ingredient-occurrence independence testing.
+20. Raw versus transformed PCA comparison.
+
+Additional references used for the new methodological work included:
+
+- Serrano, Boguñá and Vespignani (2009), *Extracting the Multiscale Backbone of Complex Weighted Networks*.
+- Benjamini and Hochberg (1995), *Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing*.
+- Clauset, Shalizi and Newman (2009), *Power-law Distributions in Empirical Data*.
+
+---
+
+## 13. Main Limitations That Remained After Modification
+
+Although the new analysis improved the original report, several limitations remained.
+
+### 13.1 Ingredient Ontology
+
+Ingredient normalization was still partly rule-based.
+
+Brands, ingredient states, quantities and preparation descriptions could remain fragmented.
+
+The reconstructed standard vocabulary was not identical to the earlier implementation.
+
+### 13.2 Missing Data
+
+Cuisine, category, nutrient, ratings and preparation-time information remained incomplete.
+
+The new analyses did not remove the underlying selection bias introduced by missingness.
+
+### 13.3 CocktailDB Representativeness
+
+The dataset was still a relatively small, online, cocktail-focused corpus.
+
+Its results could not establish universal properties of all cocktails or traditional cuisines.
+
+### 13.4 Network Null Model
+
+The disparity filter was based on a local strength-allocation null.
+
+It did not directly test ingredient independence across recipes.
+
+The Fisher exact comparison used a different null and also had assumptions concerning exchangeability of recipes.
+
+A size- and degree-preserving recipe-incidence randomization was identified as a stronger future analysis.
+
+### 13.5 Network Threshold Sensitivity
+
+The retained backbone depended strongly on alpha.
+
+At alpha = 0.05, most ingredient nodes and edges were removed.
+
+Therefore, a filtered network could not be treated as a complete representation of culinary diversity.
+
+### 13.6 Hierarchical Clustering
+
+The maximum silhouette score was only 0.020.
+
+The groups were exploratory co-use patterns rather than statistically well-separated cocktail categories.
+
+### 13.7 Nutrient and Serving Information
+
+Serving-size standardization remained unavailable.
+
+Consequently, the extreme values could not be reliably interpreted as per-glass nutritional values.
+
+### 13.8 No Direct Flavour Chemistry
+
+The ingredient networks were built from recipe co-occurrence.
+
+They did not include shared flavour molecules or chemical compatibility information.
+
+Linking CocktailDB with flavour-compound information remained an important future direction.
+
+---
+
+## 14. Final Outcome of the Modification Stage
+
+The second report substantially improved the scientific interpretation of the original analysis.
+
+The modifications did not simply add more graphs. They challenged the original assumptions and tested how sensitive the results were to methodological choices.
+
+The major conclusions were:
+
+**Zipf:** Ingredient usage was strongly concentrated and approximately Zipf-like, but the estimated exponent changed across rank intervals and normalization levels. A single invariant exponent was not supported globally.
+
+**Heaps:** Vocabulary growth remained sublinear. The reconstructed mean beta was approximately 0.757, with variability quantified across 100 recipe orderings.
+
+**Menzerath–Altmann:** The cocktail dataset did not provide the same recipe-size range as the global food corpus, and the reported relationship required careful interpretation.
+
+**Nutrient distributions:** Log1p transformations improved visualization, but the nutrient distributions remained heterogeneous. The best-fitting distribution differed by nutrient.
+
+**Correlation analysis:** The new numerical heatmaps revealed strong nutrient associations and clarified why some relationships remained weak. Effect sizes and observation counts were more informative than colour alone.
+
+**Hierarchical clustering:** Jaccard-based clustering provided exploratory ingredient co-use groups, but the low silhouette score did not support strongly separated global clusters.
+
+**Network backbone:** The disparity filter extracted a compact recurring ingredient network, but it also removed most of the original vocabulary at conventional thresholds.
+
+**Statistical robustness:** The OR/AND comparison, multiple-testing sensitivity and Fisher exact tests demonstrated that local network significance was not equivalent to positive ingredient-pair enrichment.
+
+Overall, this phase moved our work from exploratory implementation towards critical statistical validation.
+
+The most important improvement was that we began explicitly testing whether the conclusions remained valid when rank ranges, ingredient definitions, transformations, clustering methods and network thresholds changed.
+
+---
+
+## 15. Planned Work for the Next Meeting
+
+After completing the modifications, the following research directions remained important.
+
+### 15.1 Improve Ingredient Entity Resolution
+
+- Develop a more systematic cocktail-specific ingredient ontology.
+- Identify brands, aliases and canonical ingredient names.
+- Separate quantities and units from ingredient identity.
+- Preserve meaningful ingredient states and preparation descriptions.
+- Evaluate a cocktail-specific NER pipeline.
+
+### 15.2 Strengthen the Network Null Model
+
+- Implement recipe-incidence randomization.
+- Preserve recipe-size distributions.
+- Preserve ingredient frequencies where appropriate.
+- Compare randomized network statistics with observed network structure.
+- Investigate whether ingredient-pair associations remain significant after controlling for these structural constraints.
+
+### 15.3 Investigate Flavour Chemistry
+
+- Explore linking normalized ingredients with FlavorDB or equivalent flavour-compound resources.
+- Compare recipe co-occurrence networks with shared-compound networks.
+- Investigate whether frequently co-used cocktail ingredients also exhibit chemical similarity.
+- Distinguish chemical similarity from cultural or functional pairing.
+
+### 15.4 Extend the Nutrient Analysis
+
+- Investigate serving-size standardization.
+- Separate active preparation time from infusion or elapsed time where possible.
+- Validate extreme nutrient observations against their original sources.
+- Re-examine distribution fitting after improving data quality.
+
+### 15.5 Test Generality Across Additional Corpora
+
+- Compare CocktailDB with a larger independent cocktail corpus.
+- Investigate whether Zipf and Heaps exponents remain stable.
+- Examine whether ingredient diversity growth is domain-specific.
+- Consider historical menus to distinguish traditional recipes from modern variations.
+
+### 15.6 Strengthen Statistical Reporting
+
+- Continue reporting effect sizes, confidence intervals and sample sizes.
+- Document all normalization choices.
+- Separate exploratory visual patterns from validated statistical conclusions.
+- Avoid interpreting correlations as causal relationships.
+- Preserve sensitivity analyses alongside primary estimates.
+
+---
+
+## 16. Overall Research Reflection
+
+The modification stage was an important step in improving the quality of our computational gastronomy research.
+
+The first report demonstrated that the statistical framework of *Universal Statistical Laws Governing Culinary Design* could be adapted to CocktailDB.
+
+The second report investigated whether those initial results were stable, whether the graphs were being interpreted correctly and whether additional network methods could reveal more about ingredient composition.
+
+We learned that statistical regularities should not be accepted solely because a graph looks convincing.
+
+A high R² can coexist with systematic curvature. A small p-value can accompany a negligible effect size. A network backbone can look meaningful while retaining only a small fraction of the vocabulary. A cluster can be visually distinct while having a near-zero silhouette score.
+
+The new analyses made these distinctions explicit.
+
+The resulting research contribution was therefore not simply that CocktailDB reproduced the paper's laws.
+
+It was that we systematically investigated which aspects of the original framework transferred to a specialised cocktail corpus, which differed, and which could not be established using the available data.
+
+This provided a more defensible basis for the next stage of research, particularly ingredient ontology development, flavour-chemistry integration and statistically controlled network analysis.
