@@ -1,6 +1,6 @@
 # Computational Gastronomy Research | Chronological Research Archive
 
-**Researcher:** Satyam Singh  
+**Researcher:** Satyam Singh and Manthan Kapoor
 **Institution:** Indraprastha Institute of Information Technology Delhi (IIIT-Delhi)  
 **Research Area:** Computational Gastronomy, Data Science, Statistical Modelling, Food Pairing and Network Science  
 **Research Supervisor:** Prof. Ganesh Bagler  
